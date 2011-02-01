@@ -2,34 +2,13 @@
 <html> 
 <head> 
 	<meta charset="utf-8"> 
- 
-	<title>CSS3-flexbox demo</title> 
-<script type='text/javascript' src='js/jquery-1.4.4.js'></script>
-<script type='text/javascript' src='js/jquery-ui-1.8.5.js'></script>
-<script type='text/javascript' src='js/backbone.js'></script>
- <script type='text/javascript' src='js/app.js'></script>
- <script type='text/javascript' src='js/rulers.js'></script>
-	<style type="text/css" media="screen"> 
-		body, html, #all { width: 100%; height: 100%; padding: 0; margin: 0; }
-		
-		.vbox, .hbox { display: -webkit-box; display: -moz-box; display: box; }
-		.vbox { -webkit-box-orient: vertical; -moz-box-orient: vertical; box-orient: vertical; }
-		.hbox { -webkit-box-orient: horizontal; -moz-box-orient: horizontal; box-orient: horizontal; }
-		.filler {box-flex: 1; -moz-box-flex: 1; -webkit-box-flex: 1;  } 
-		
-		#scroller {overflow:scroll; background:grey; }
-		#scroller .filler {  }
-		#content { height:300px; width:600px; background-color:white; }
-		#header { height:50px; }
-		#sidebar { width:50px; }
-		
-		#rulers { position:absolute; top:0; left: 0; z-index:10;}
-		#ruler-x, #ruler-y { position:absolute; overflow:hidden; background:#ddd;}
-		#ruler-x { top: 34px; left: 50px; }
-		#ruler-y { top: 50px; left: 34px; }
-		#ruler-x div { height:16px; }
-		#ruler-y div { width:16px; }
-	</style> 
+	<title>Web Design</title> 
+	<link rel="stylesheet" href="css/styles.css" />
+	<script type='text/javascript' src='js/jquery-1.4.4.js'></script>
+	<script type='text/javascript' src='js/jquery-ui-1.8.5.js'></script>
+	<script type='text/javascript' src='js/backbone.js'></script>
+	<script type='text/javascript' src='js/app.js'></script>
+	<script type='text/javascript' src='js/rulers.js'></script>
 </head> 
 <body> 
 	<div id='all' class='vbox'>
@@ -47,11 +26,9 @@
 			</div>
 		</div>
 	</div>
-	
 	<div id='rulers'>
 		<div id='ruler-x'><div><canvas></canvas></div></div>
 		<div id='ruler-y'><div><canvas></canvas></div></div>
 	</div>
-	
 </body> 
 </html> 
