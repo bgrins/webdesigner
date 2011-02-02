@@ -15,8 +15,8 @@ body, html, #all { width: 100%; height: 100%; padding: 0; margin: 0; }
 #rulers { position:absolute; top:0; left: 0; z-index:10;}
 #ruler-x, #ruler-y { position:absolute; overflow:hidden; background:#ddd;}
 #ruler-x { top: 34px; left: 50px; }
-#ruler-y { top: 50px; left: 34px; }
+#ruler-y { top: 50px; left: 34px; bottom: 16px; }
 #ruler-x div { height:16px; }
 #ruler-y div { width:16px; }
 
-
+#mirror { /*display:none;*/ }

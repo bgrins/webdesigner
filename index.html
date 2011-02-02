@@ -3,12 +3,15 @@
 <head> 
 	<meta charset="utf-8"> 
 	<title>Web Design</title> 
+	<link rel="stylesheet" href="css/blueprint.css" />
 	<link rel="stylesheet" href="css/styles.css" />
 	<script type='text/javascript' src='js/jquery-1.4.4.js'></script>
 	<script type='text/javascript' src='js/jquery-ui-1.8.5.js'></script>
 	<script type='text/javascript' src='js/backbone.js'></script>
 	<script type='text/javascript' src='js/app.js'></script>
+	<script type='text/javascript' src='js/element.js'></script>
 	<script type='text/javascript' src='js/rulers.js'></script>
+	<script type='text/javascript' src='js/svgcanvas.js'></script>
 </head> 
 <body> 
 	<div id='all' class='vbox'>
@@ -19,7 +22,7 @@
 				<div class='filler'></div>
 				<div class='hbox'>
 					<div class='filler'></div>
-					<div id='content'>here we go</div>
+					<div id='content'><canvas id='c'></canvas></div>
 					<div class='filler'></div>
 				</div>
 				<div class='filler'></div>
@@ -30,5 +33,9 @@
 		<div id='ruler-x'><div><canvas></canvas></div></div>
 		<div id='ruler-y'><div><canvas></canvas></div></div>
 	</div>
+	<iframe id='mirror' src='javascript:void(0);'></iframe>
+	<script type='text/html' id='loadTemplate'>
+	<style>body {font-size:76%;} strong{ font-size: 1.5em; } p.test { border: solid 5px; margin-left:10px; padding-left:10px;} .left { float:left; }</style><div>text node <strong>strong</strong> another text <span>ok <em>emphasized</em></span><div class='left'>some floated</div><p class='test'>inside test</p></div>
+	</script>
 </body> 
 </html> 
