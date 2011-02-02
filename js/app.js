@@ -31,7 +31,6 @@ $(function() {
 
 	var bod = new element(mirrorBody[0]);
 	
-	log(canvas[0]);
 	bod.precalculateCanvas();
 	bod.renderToCanvas(canvas[0]);
 	/*

@@ -1,15 +1,19 @@
 
 element.elID = 0;
 element.ignoreTags = { 'style':1 };
+element.drawBoundingBox = false;
 element.styleAttributes = [
-'padding-top','padding-right','padding-bottom','padding-left',
-'margin-top','margin-right','margin-bottom','margin-left',
-'border-top-width', 'border-top-style', 'border-top-color',
-'border-right-width', 'border-right-style', 'border-right-color',
-'border-bottom-width', 'border-bottom-style', 'border-bottom-color',
-'border-left-width', 'border-left-style', 'border-left-color',
+'border-top-style', 'border-top-color',
+'border-right-style', 'border-right-color',
+'border-bottom-style', 'border-bottom-color',
+'border-left-style', 'border-left-color',
 'display', 'text-decoration',
 'font-family', 'font-style', 'font-weight', 'font-size', 'color'
+];
+element.styleAttributesPx = [
+'padding-top','padding-right','padding-bottom','padding-left',
+'margin-top','margin-right','margin-bottom','margin-left',
+'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width'
 ];
 
 function element(DOMElement) {
@@ -50,38 +54,53 @@ element.prototype.copyDOM = function(el) {
 	var el = $(this._domElement);
 
 	this.shouldRender = true;
-	this.offset = el.offset();
-	this.position = el.position();
-	this.height = el.height();
-	this.width = el.width();
+	this.drawDebugging = !!el.attr("data-debug");
 	
 	this.css = { };
 	for (var i = 0; i < element.styleAttributes.length; i++) {
 		var attr = element.styleAttributes[i];
 		this.css[$.camelCase(attr)] = el.css(attr);
 	}
+	for (var i = 0; i < element.styleAttributesPx.length; i++) {
+		var attr = element.styleAttributesPx[i];
+		this.css[$.camelCase(attr)] = parseInt(el.css(attr), 10) || 0;
+	}
+	
+	this.originalOffset = el.offset();
+	this.offset = { 
+		top: this.originalOffset.top - this.css.marginTop, 
+		left: this.originalOffset.left - this.css.marginLeft 
+	};
+	this.position = el.position();
+	this.height = el.height();
+	this.width = el.width();
+	
 	
 	this.css.font = this.css.fontWeight + " "  + this.css.fontSize + " " + this.css.fontFamily;
 	
-	this.css.outerHeight = this.height + 
-		parseInt(this.css.paddingTop, 10) +
-		parseInt(this.css.paddingBottom, 10) +
-		parseInt(this.css.borderTopWidth, 10) + 
-		parseInt(this.css.borderBottomWidth);
+	this.css.outerHeight = 
+		this.height + 
+		this.css.paddingTop +
+		this.css.paddingBottom +
+		this.css.borderTopWidth +
+		this.css.borderBottomWidth;
 		
-	this.css.outerHeightMargins = this.css.outerHeight + 
-		parseInt(this.css.marginTop, 10) + 
-		parseInt(this.css.marginBottom, 10);
+	this.css.outerHeightMargins = 
+		this.css.outerHeight + 
+		this.css.marginTop + 
+		this.css.marginBottom;
 		
-	this.css.outerWidth = this.width + 
-		parseInt(this.css.paddingLeft, 10) +
-		parseInt(this.css.paddingRight, 10) +
-		parseInt(this.css.borderLeftWidth, 10) + 
-		parseInt(this.css.borderRightWidth);
+	this.css.outerWidth = 
+		this.width + 
+		this.css.paddingLeft +
+		this.css.paddingRight +
+		this.css.borderLeftWidth + 
+		this.css.borderRightWidth;
 		
-	this.css.outerWidthMargins = this.css.outerWidth + 
-		parseInt(this.css.marginLeft, 10) + 
-		parseInt(this.css.marginRight, 10);
+	this.css.outerWidthMargins = 
+		this.css.outerWidth + 
+		this.css.marginLeft +
+		this.css.marginRight;
 		
 	
 	// Todo: get a better measurement of line height, actually breaking the text up into lines
@@ -97,12 +116,24 @@ element.prototype.renderToCanvas = function(canvas) {
 	if (!this.shouldRender) { return; }
 	
 	//log("rendering", this.tagName, this.offset);
+	log("rendering", this.tagName, this.canvas, this.offset.left, this.offset.top);
 	
-	canvas.getContext("2d").drawImage(this.canvas, this.offset.left, this.offset.top, this.css.outerWidthMargins, this.css.outerHeightMargins);
+	var ctx = canvas.getContext("2d");
+	if (element.drawBoundingBox || this.drawDebugging) {
+		ctx.strokeStyle = "#d66";
+		ctx.lineWidth = 1;
+		ctx.strokeRect(this.offset.left - 1, this.offset.top - 1, 
+			this.css.outerWidthMargins + 2, this.css.outerHeightMargins + 2);
+	}
+	
+	ctx.drawImage(this.canvas, this.offset.left, this.offset.top, 
+		this.css.outerWidthMargins, this.css.outerHeightMargins);
+	
+	
 	for (var i = 0; i < this.childElements.length; i++) {
-		var element = this.childElements[i];
-		if (element.nodeType != 3) {
-			element.renderToCanvas(canvas);
+		var el = this.childElements[i];
+		if (el.nodeType != 3) {
+			el.renderToCanvas(canvas);
 		}
 	}
 };
@@ -115,7 +146,8 @@ element.prototype.precalculateCanvas = function() {
 	this.canvas.width = this.css.outerWidthMargins;
 	this.canvas.height = this.css.outerHeightMargins;
 	
-	log(this.tagName, this.canvas.height,  this.height, this.canvas.width, this.width);
+	// log(this.tagName, this.canvas.height,  this.height, this.canvas.width, this.width);
+	
 	var canvas = this.canvas;
 	var ctx = canvas.getContext("2d");
 	
@@ -130,34 +162,27 @@ element.prototype.precalculateCanvas = function() {
 	
 	}
 	
-	var marginWidths = {
-		top: parseInt(this.css.marginTop, 10),
-		right: parseInt(this.css.marginRight, 10),
-		bottom: parseInt(this.css.marginBottom, 10),
-		left: parseInt(this.css.marginLeft, 10)
-	};
+	offsetTop += this.css.marginTop;
+	offsetRight += this.css.marginRight;
+	offsetBottom += this.css.marginBottom;
+	offsetLeft += this.css.marginLeft;
 	
-	offsetTop += parseInt(this.css.marginTop, 10) || 0;
-	offsetRight += parseInt(this.css.marginRight, 10) || 0;
-	offsetBottom += parseInt(this.css.marginBottom, 10) || 0;
-	offsetLeft += parseInt(this.css.marginLeft, 10) || 0;
-	
-	var borderLeftWidth = parseInt(this.css.borderLeftWidth, 10) || 0;
+	var borderLeftWidth = this.css.borderLeftWidth;
 	if (borderLeftWidth) {		
 		ctx.fillStyle = this.css.borderLeftColor;
 		ctx.fillRect(offsetLeft, offsetTop, borderLeftWidth, this.css.outerHeight);
 	}
-	var borderTopWidth = parseInt(this.css.borderTopWidth, 10) || 0;
+	var borderTopWidth = this.css.borderTopWidth;
 	if (borderTopWidth) {		
 		ctx.fillStyle = this.css.borderTopColor;
 		ctx.fillRect(offsetLeft, offsetTop, this.css.outerWidth, borderTopWidth);
 	}
-	var borderBottomWidth = parseInt(this.css.borderBottomWidth, 10) || 0;
+	var borderBottomWidth = this.css.borderBottomWidth;
 	if (borderBottomWidth) {		
 		ctx.fillStyle = this.css.borderBottomColor;
 		ctx.fillRect(offsetLeft, offsetTop + this.css.outerHeight - borderBottomWidth, this.css.outerWidth, borderBottomWidth);
 	}
-	var borderRightWidth = parseInt(this.css.borderRightWidth, 10) || 0;
+	var borderRightWidth = this.css.borderRightWidth;
 	if (borderRightWidth) {		
 		ctx.fillStyle = this.css.borderRightColor;
 		ctx.fillRect(offsetLeft + this.css.outerWidth - borderRightWidth, offsetTop, borderRightWidth, this.css.outerHeight);
@@ -169,11 +194,10 @@ element.prototype.precalculateCanvas = function() {
 	offsetBottom += borderBottomWidth;
 	offsetLeft += borderLeftWidth;
 	
-	offsetTop += parseInt(this.css.paddingTop, 10) || 0;
-	offsetRight += parseInt(this.css.paddingRight, 10) || 0;
-	offsetBottom += parseInt(this.css.paddingBottom, 10) || 0;
-	offsetLeft += parseInt(this.css.paddingLeft, 10) || 0;
-	
+	offsetTop += this.css.paddingTop;
+	offsetRight += this.css.paddingRight;
+	offsetBottom += this.css.paddingBottom;
+	offsetLeft += this.css.paddingLeft;
 	
 	for (var i = 0; i < this.childElements.length; i++) {
 		var element = this.childElements[i];

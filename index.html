@@ -11,7 +11,6 @@
 	<script type='text/javascript' src='js/app.js'></script>
 	<script type='text/javascript' src='js/element.js'></script>
 	<script type='text/javascript' src='js/rulers.js'></script>
-	<script type='text/javascript' src='js/svgcanvas.js'></script>
 </head> 
 <body> 
 	<div id='all' class='vbox'>
@@ -35,7 +34,12 @@
 	</div>
 	<iframe id='mirror' src='javascript:void(0);'></iframe>
 	<script type='text/html' id='loadTemplate'>
-	<style>body {font-size:76%;} strong{ font-size: 1.5em; } p.test { border: solid 5px; margin-left:10px; padding-left:10px;} .left { float:left; }</style><div>text node <strong>strong</strong> another text <span>ok <em>emphasized</em></span><div class='left'>some floated</div><p class='test'>inside test</p></div>
+	<style>
+		body {font-size:76%;} 
+		strong{ font-size: 1.5em; } 
+		p.test { border: solid 5px; margin-left:10px; padding-left:10px;} 
+		.left { float:left; padding-left:50px; }
+	</style><div>text node <strong>strong</strong> another text <span>ok <em>emphasized</em></span><div class='left'>some floated</div><p data-debug="true" class='test'>inside test</p></div>
 	</script>
 </body> 
 </html> 
