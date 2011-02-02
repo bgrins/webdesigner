@@ -33,13 +33,28 @@
 		<div id='ruler-y'><div><canvas></canvas></div></div>
 	</div>
 	<iframe id='mirror' src='javascript:void(0);'></iframe>
+	<script type='text/html' id='loadTemplate2'>
+	<div>
+	text node <div>ok</div> 
+	what next <strong>strong</strong> 
+	another text 
+	<span>ok 
+	<em>emphasized is really freaking long, even causing it to wrap down to the next line and it keeps on going......</em>
+	</span>
+	<div class='left'>some floated</div><p data-debug="true" class='test'>inside test</p>
+	</div>
+	</style>
+	</script>
 	<script type='text/html' id='loadTemplate'>
 	<style>
 		body {font-size:76%;} 
-		strong{ font-size: 1.5em; } 
+		strong{ font-size: 2em; font-weight:bold; } 
 		p.test { border: solid 5px; margin-left:10px; padding-left:10px;} 
 		.left { float:left; padding-left:50px; }
-	</style><div>text node <strong>strong</strong> another text <span>ok <em>emphasized</em></span><div class='left'>some floated</div><p data-debug="true" class='test'>inside test</p></div>
+	</style>
+	<div>
+	text node <div>ok</div> 
+	what next <strong>strong</strong>
 	</script>
 </body> 
 </html> 

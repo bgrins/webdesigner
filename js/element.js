@@ -41,7 +41,7 @@ element.prototype.copyDOM = function(el) {
 	this.nodeType = this._domElement.nodeType;
 	
 	if (this.nodeType == 3) {
-		this.text = this._domElement.data;
+		this.text = $.trim(this._domElement.data);
 		return; 
 	}
 	
@@ -74,6 +74,7 @@ element.prototype.copyDOM = function(el) {
 	this.position = el.position();
 	this.height = el.height();
 	this.width = el.width();
+	this.isBlock = this.css.display == "block";
 	
 	
 	this.css.font = this.css.fontWeight + " "  + this.css.fontSize + " " + this.css.fontFamily;
@@ -158,7 +159,7 @@ element.prototype.precalculateCanvas = function() {
 	
 	var offsets = { 'top': 0, 'right': 0, 'bottom': 0, 'left': 0 };
 	
-	if (this.display == "block") {
+	if (this.isBlock) {
 	
 	}
 	
@@ -199,21 +200,42 @@ element.prototype.precalculateCanvas = function() {
 	offsetBottom += this.css.paddingBottom;
 	offsetLeft += this.css.paddingLeft;
 	
+	
+	var lineheight = this.lineheight;
+	var lines = [];
+	
 	for (var i = 0; i < this.childElements.length; i++) {
 		var element = this.childElements[i];
 		if (element.nodeType == 3) {
+  			
+  			//lines.push({element.text, left: offsetLeft, top:offsetTop});
+  			
   			ctx.font = this.css.font;
   			ctx.fillStyle = this.css.color;
 			ctx.textBaseline = "bottom";
-			
-			log("rendering text", element.text, this.tagName, this.lineheight, this.height, this.position.top);
-			
-  			ctx.fillText(element.text, offsetLeft, offsetTop + this.lineheight);// offsetLeft, this.offset.top);
+		
+			var y = offsetTop + this.lineheight;
+			log("rendering text", element.text, this.tagName, offsetLeft, y);
+  			
+  			ctx.fillText(element.text, offsetLeft, y);
   			offsetLeft += ctx.measureText(element.text).width;
 		}
 		else {
-			offsetLeft += element.width;
+			if (!element.shouldRender) { continue; }
+			if (element.isBlock) { 
+				// log("incrementing offset top", element.tagName, offsetTop, element.css.outerHeightMargins)
+				offsetTop += element.css.outerHeightMargins + this.lineheight;
+				offsetLeft = 0;
+			}
+			else {
+				offsetLeft += element.css.outerWidthMargins;
+			}
 			element.precalculateCanvas();
 		}
 	}
+	
+	for (var i = 0; i < lines.length; i++) {
+	
+	}
 };
+
