@@ -266,7 +266,7 @@ element.prototype.precalculateCanvas = function() {
 		ctx.textBaseline = "bottom";
 		
 		var startX = this.textStart.left - this.offset.left;
-		var lines = getLines2(ctx,this.text,this.overflowHiddenWidth, startX);
+		var lines = getLines(ctx,this.text,this.overflowHiddenWidth, startX);
 		var lastY = this.lineheight;
 		for (var j = 0; j < lines.length; j++) {
 		    log("Rendering Text", lines[j], offsetTop, lastY);
@@ -286,7 +286,7 @@ element.prototype.precalculateCanvas = function() {
 	
 };
 
-function getLines2(ctx, phrase, maxWidth, initialOffset) {
+function getLines(ctx, phrase, maxWidth, initialOffset) {
 	var words = phrase.split(" ");
 	var lastLine = [];
 	var lastX = initialOffset || 0;
