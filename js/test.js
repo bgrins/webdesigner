@@ -1,5 +1,4 @@
 function log() {
-	return;
 	if (window.console) {
 		console.log(Array.prototype.slice.apply(arguments));
 	}

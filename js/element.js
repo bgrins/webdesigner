@@ -103,6 +103,9 @@ element.prototype.copyDOM = function() {
 	}
 	
 	this.offset = el.offset();
+	this.position = el.position();
+	this.height = el.height();
+	this.width = this.overflowHiddenWidth = el.width();
 	
 	// Offset needs to be computed with the margin to show where to start the bounding box of element
 	// Offset does not take body's border into account http://bugs.jquery.com/ticket/7948
@@ -111,9 +114,6 @@ element.prototype.copyDOM = function() {
 		top: Math.max(0, this.offset.top - this.css.marginTop + body.css.borderTopWidth), 
 		left: Math.max(0, this.offset.left - this.css.marginLeft + body.css.borderLeftWidth)
 	};
-	this.position = el.position();
-	this.height = el.height();
-	this.width = this.overflowHiddenWidth = el.width();
 	
 	this.isBlock = this.css.display == "block" || this.tagName == "body";
 	
@@ -137,8 +137,8 @@ element.prototype.copyDOM = function() {
 	}
 	
 	this.text = this.hasOnlyTextNodes ? $.trim(el.text()) : "";
-	this.css.font = this.css.fontWeight + " "  + this.css.fontSize + " " + this.css.fontFamily;
-	
+	this.css.font = $.trim(this.css.fontStyle + " " + this.css.fontWeight + " "  + this.css.fontSize + " " + this.css.fontFamily);
+	log(this.css.font);
 	this.css.outerHeight = 
 		this.height + 
 		this.css.paddingTop +
