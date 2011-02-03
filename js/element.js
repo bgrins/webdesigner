@@ -1,6 +1,6 @@
 
 element.elID = 0;
-element.ignoreTags = { 'style':1 };
+element.ignoreTags = { 'style':1, 'br': 1 };
 element.drawBoundingBox = false;
 element.styleAttributes = [
 'border-top-style', 'border-top-color',
@@ -8,36 +8,68 @@ element.styleAttributes = [
 'border-bottom-style', 'border-bottom-color',
 'border-left-style', 'border-left-color',
 'display', 'text-decoration',
-'font-family', 'font-style', 'font-weight', 'font-size', 'color'
+'font-family', 'font-style', 'font-weight', 'font-size', 'color',
+'position', 'float', 'clear', 'overflow'
 ];
 element.styleAttributesPx = [
 'padding-top','padding-right','padding-bottom','padding-left',
 'margin-top','margin-right','margin-bottom','margin-left',
-'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width'
+'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
+'top', 'bottom', 'left', 'right'
 ];
 
+$.fn.wrapSiblingTextNodes = function(wrapper) {
+	this.contents().each(function() {
+		if (this.nodeType == 3) {
+			if ($.trim(this.data) == "") { $(this).remove(); }
+			if ($(this.parentNode).children().length) {
+				$(this).wrap(wrapper);
+			}
+		}
+	});
+};
+
+function htmlToCanvas(body, canvas) {
+	var el = new element(body);
+	canvas.width = el.css.outerWidthMargins;
+	canvas.height = el.css.outerHeightMargins;
+	el.precalculateCanvas();
+	el.renderToCanvas(canvas);
+}
+
 function element(DOMElement) {
-	//log("initializing element", DOMElement);
+	
+	log("initializing element", DOMElement);
 	
 	DOMElement._element = this;
 	
 	this.elID = element.elID++;
 	this._domElement = DOMElement;
+	this.jq = $(this._domElement);
 	
+	this.parent = this._domElement.parentNode._element;
+	if (this.parent) {
+		this.closestBlock = (this.parent.isBlock) ? this.parent : this.parent.closestBlock;
+	}
+	
+	this.jq.wrapSiblingTextNodes("<span></span>");
 	this.copyDOM();
 	
-	if (this.shouldRender) {
-		this.childNodes = this._domElement.childNodes;
-		this.childElements = [];
-		for (var i = 0; i < this.childNodes.length; i++) {
-			this.childElements.push(new element(this.childNodes[i]));
-		}
+	
+	this.childNodes = this._domElement.childNodes;
+	this.childElements = [];
+	for (var i = 0; i < this.childNodes.length; i++) {
+		var child = this.childNodes[i];
+		var ignore = child.nodeType == 3 || element.ignoreTags[child.tagName];
+		if (!ignore) {
+	   		this.childElements.push(new element(this.childNodes[i]));
+	   	}
 	}
+	
 }
 
-element.prototype.copyDOM = function(el) {
+element.prototype.copyDOM = function() {
 
-	this.shouldRender = false;
 	this.nodeType = this._domElement.nodeType;
 	
 	if (this.nodeType == 3) {
@@ -51,9 +83,7 @@ element.prototype.copyDOM = function(el) {
 		return; 
 	}
 		
-	var el = $(this._domElement);
-
-	this.shouldRender = true;
+	var el = this.jq;
 	this.drawDebugging = !!el.attr("data-debug");
 	
 	this.css = { };
@@ -66,17 +96,44 @@ element.prototype.copyDOM = function(el) {
 		this.css[$.camelCase(attr)] = parseInt(el.css(attr), 10) || 0;
 	}
 	
-	this.originalOffset = el.offset();
-	this.offset = { 
-		top: this.originalOffset.top - this.css.marginTop, 
-		left: this.originalOffset.left - this.css.marginLeft 
+	this.offset = el.offset();
+	if (this.parent) {
+		this.offset = {
+			top: this.offset.top + this.parent.css.borderTopWidth, 
+			left: this.offset.left + this.parent.css.borderLeftWidth
+		}
+		this.originalOffset = el.offset();
+	}
+	this.offsetNoMargin = { 
+		top: this.offset.top - this.css.marginTop, 
+		left: this.offset.left - this.css.marginLeft
 	};
+	
 	this.position = el.position();
 	this.height = el.height();
-	this.width = el.width();
-	this.isBlock = this.css.display == "block";
+	this.width = this.overflowHiddenWidth = el.width();
+	this.isBlock = this.css.display == "block" || this.tagName == "body";
 	
+	if (this.isBlock) {
+		var oldOverflow = el.css("overflow");
+		this.overflowHiddenWidth = el.css("overflow", "hidden").width();
+		el.css("overflow", oldOverflow);
+		this.isOverflowing = this.overflowHiddenWidth != this.width;
+	}
 	
+	if (this.closestBlock && (this.closestBlock.width < this.width)) {
+		this.overflowHiddenWidth = this.closestBlock.width;
+		this.isOverflowing = this.overflowHiddenWidth != this.width;
+	}
+	
+	this.hasOnlyTextNodes = true;
+	this.text = "";
+	var childNodes = this._domElement.childNodes;
+	for (var i = 0; i < childNodes.length; i++) {
+		if (childNodes[i].nodeType != 3) { this.hasOnlyTextNodes = false; }
+	}
+	
+	this.text = this.hasOnlyTextNodes ? el.text() : "";
 	this.css.font = this.css.fontWeight + " "  + this.css.fontSize + " " + this.css.fontFamily;
 	
 	this.css.outerHeight = 
@@ -103,33 +160,46 @@ element.prototype.copyDOM = function(el) {
 		this.css.marginLeft +
 		this.css.marginRight;
 		
+	this.shouldRender = (this.css.outerWidthMargins > 0 && this.css.outerHeightMargins > 0);
 	
 	// Todo: get a better measurement of line height, actually breaking the text up into lines
 	var oldHtml = el.html();
-	var newHtml = el.html() + "<span id='measure'>x</span>";
-	var measured = el.html(newHtml).find("#measure");
+	var newHtml = "x";
+	var measured = el.html(newHtml);
 	var measuredHeight = measured.height();
+	this.textStart = el.offset();
+	log("measured height", measuredHeight);
+	
 	this.lineheight = measuredHeight;
+	
 	el.html(oldHtml);
 };
+
 element.prototype.renderToCanvas = function(canvas) {
 	
 	if (!this.shouldRender) { return; }
 	
-	//log("rendering", this.tagName, this.offset);
-	log("rendering", this.tagName, this.canvas, this.offset.left, this.offset.top);
-	
+	/*
+	log("rendering", this.tagName, 
+		this.canvas.width, canvas.width,
+		this.canvas.height, canvas.height
+	);
+	*/
 	var ctx = canvas.getContext("2d");
+	
 	if (element.drawBoundingBox || this.drawDebugging) {
 		ctx.strokeStyle = "#d66";
 		ctx.lineWidth = 1;
-		ctx.strokeRect(this.offset.left - 1, this.offset.top - 1, 
-			this.css.outerWidthMargins + 2, this.css.outerHeightMargins + 2);
+		ctx.strokeRect(this.offset.left, this.offset.top, 
+			this.css.outerWidthMargins, this.css.outerHeightMargins);
 	}
 	
-	ctx.drawImage(this.canvas, this.offset.left, this.offset.top, 
-		this.css.outerWidthMargins, this.css.outerHeightMargins);
-	
+	if (this.css.outerWidthMargins > 0 && this.css.outerHeightMargins > 0) {
+		ctx.drawImage(
+			this.canvas, this.offset.left, this.offset.top, 
+			this.css.outerWidthMargins, this.css.outerHeightMargins
+		);
+	}
 	
 	for (var i = 0; i < this.childElements.length; i++) {
 		var el = this.childElements[i];
@@ -140,10 +210,10 @@ element.prototype.renderToCanvas = function(canvas) {
 };
 
 element.prototype.precalculateCanvas = function() {
+
 	if (!this.shouldRender) { return; }
 	
 	this.canvas = document.createElement("canvas");
-	
 	this.canvas.width = this.css.outerWidthMargins;
 	this.canvas.height = this.css.outerHeightMargins;
 	
@@ -152,21 +222,10 @@ element.prototype.precalculateCanvas = function() {
 	var canvas = this.canvas;
 	var ctx = canvas.getContext("2d");
 	
-	var offsetLeft = 0;
-	var offsetTop = 0;
-	var offsetBottom = 0;
-	var offsetRight = 0;
-	
-	var offsets = { 'top': 0, 'right': 0, 'bottom': 0, 'left': 0 };
-	
-	if (this.isBlock) {
-	
-	}
-	
-	offsetTop += this.css.marginTop;
-	offsetRight += this.css.marginRight;
-	offsetBottom += this.css.marginBottom;
-	offsetLeft += this.css.marginLeft;
+	var offsetLeft = this.css.marginLeft;
+	var offsetTop = this.css.marginTop;
+	var offsetBottom = this.css.marginBottom;
+	var offsetRight = this.css.marginRight;
 	
 	var borderLeftWidth = this.css.borderLeftWidth;
 	if (borderLeftWidth) {		
@@ -186,9 +245,10 @@ element.prototype.precalculateCanvas = function() {
 	var borderRightWidth = this.css.borderRightWidth;
 	if (borderRightWidth) {		
 		ctx.fillStyle = this.css.borderRightColor;
-		ctx.fillRect(offsetLeft + this.css.outerWidth - borderRightWidth, offsetTop, borderRightWidth, this.css.outerHeight);
+		ctx.fillRect(
+			offsetLeft + this.css.outerWidth - borderRightWidth, 
+			offsetTop, borderRightWidth, this.css.outerHeight);
 	}
-	
 	
 	offsetTop += borderTopWidth;
 	offsetRight += borderRightWidth;
@@ -200,42 +260,56 @@ element.prototype.precalculateCanvas = function() {
 	offsetBottom += this.css.paddingBottom;
 	offsetLeft += this.css.paddingLeft;
 	
-	
 	var lineheight = this.lineheight;
 	var lines = [];
 	
-	for (var i = 0; i < this.childElements.length; i++) {
-		var element = this.childElements[i];
-		if (element.nodeType == 3) {
-  			
-  			//lines.push({element.text, left: offsetLeft, top:offsetTop});
-  			
-  			ctx.font = this.css.font;
-  			ctx.fillStyle = this.css.color;
-			ctx.textBaseline = "bottom";
+	if (this.hasOnlyTextNodes) {
 		
-			var y = offsetTop + this.lineheight;
-			log("rendering text", element.text, this.tagName, offsetLeft, y);
-  			
-  			ctx.fillText(element.text, offsetLeft, y);
-  			offsetLeft += ctx.measureText(element.text).width;
+  		ctx.font = this.css.font;
+  		ctx.fillStyle = this.css.color;
+		ctx.textBaseline = "bottom";
+		
+		var startX = this.textStart.left;
+		var lines = getLines2(ctx,this.text,this.overflowHiddenWidth);
+		var lastY = 0;
+		for (var j = 0; j < lines.length; j++) {
+		    lastY += this.lineheight;
+		    log("rendering text", lines[j], offsetLeft, startX);
+		    ctx.fillText(lines[j], offsetLeft + startX, offsetTop + lastY);
+		    startX = 0;
 		}
-		else {
-			if (!element.shouldRender) { continue; }
-			if (element.isBlock) { 
-				// log("incrementing offset top", element.tagName, offsetTop, element.css.outerHeightMargins)
-				offsetTop += element.css.outerHeightMargins + this.lineheight;
-				offsetLeft = 0;
-			}
-			else {
-				offsetLeft += element.css.outerWidthMargins;
-			}
-			element.precalculateCanvas();
+	}
+	else {
+		for (var i = 0; i < this.childElements.length; i++) {
+			this.childElements[i].precalculateCanvas();
 		}
 	}
 	
-	for (var i = 0; i < lines.length; i++) {
-	
-	}
 };
+
+function getLines2(ctx, phrase, maxWidth) {
+	var words = phrase.split(" ");
+	var lastLine = [];
+	var lastX = 0;
+	var lastY = 0;
+	var output = [];
+	
+	for (var i = 0; i < words.length; i++) {
+		var word = $.trim(words[i]);
+		if (word == "") { continue; }
+	    lastX += ctx.measureText(word + ' ').width;
+	    lastLine.push(word);
+	    if (lastX > maxWidth) {
+	    	output.push(lastLine.join(' '));
+	    	lastX = 0;
+	    	lastLine = [];
+	    }
+	}
+	
+	if (lastLine.length) {
+		output.push(lastLine.join(' '));
+	}
+	
+	return output;
+}
 

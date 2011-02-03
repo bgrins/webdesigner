@@ -25,14 +25,10 @@ $(function() {
 	});
 
 	var mirror = $("#mirror").contents();
-	var mirrorBody = mirror.find("body");
+	var mirrorBody = mirror.find("body").attr("data-debug", "true");
 	
 	mirrorBody.html($("#loadTemplate").html());
-
-	var bod = new element(mirrorBody[0]);
-	
-	bod.precalculateCanvas();
-	bod.renderToCanvas(canvas[0]);
+	htmlToCanvas(mirrorBody[0], canvas[0]);
 	/*
 	
 	var elements = [];

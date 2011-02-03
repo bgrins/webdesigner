@@ -33,28 +33,27 @@
 		<div id='ruler-y'><div><canvas></canvas></div></div>
 	</div>
 	<iframe id='mirror' src='javascript:void(0);'></iframe>
-	<script type='text/html' id='loadTemplate2'>
-	<div>
-	text node <div>ok</div> 
-	what next <strong>strong</strong> 
-	another text 
-	<span>ok 
-	<em>emphasized is really freaking long, even causing it to wrap down to the next line and it keeps on going......</em>
-	</span>
-	<div class='left'>some floated</div><p data-debug="true" class='test'>inside test</p>
-	</div>
-	</style>
-	</script>
+	
 	<script type='text/html' id='loadTemplate'>
+	<style>body{border:solid 5px;} p { font-size: 1.5em; border: solid 1px; }</style>
+		<div>
+		<strong data-debug="true">This <span>is some text.  It will eventually need to word wrap as it gets longerr</span></strong>
+		
+		</div>
+		<p data-debug="true">What</p>
+	</script>
+	
+	<script type='text/html' id='loadTemplate3'>
 	<style>
-		body {font-size:76%;} 
+		body {font-size:76%; border: solid 3px;} 
 		strong{ font-size: 2em; font-weight:bold; } 
 		p.test { border: solid 5px; margin-left:10px; padding-left:10px;} 
 		.left { float:left; padding-left:50px; }
 	</style>
 	<div>
-	text node <div>ok</div> 
-	what next <strong>strong</strong>
+	text node <br /> and break <div>ok</div> 
+	what next <strong data-debug="true">stronf dsalsdfjlksdaf ljfsd  lkfsdsdfka fsdksdfajsf kfsdjfdskjfsadfaksdfjdkg</strong> <span>asdf adsdsa</span>
+	<p class='test'>Left alon</p>
 	</script>
 </body> 
 </html> 
