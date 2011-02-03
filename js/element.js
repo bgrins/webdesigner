@@ -50,15 +50,15 @@ element.styleAttributes = [
 'border-bottom-style', 'border-bottom-color',
 'border-left-style', 'border-left-color',
 'display', 'text-decoration',
-'font-family', 'font-style', 'font-weight', 'font-size', 'color',
+'font-family', 'font-style', 'font-weight', 'color',
 'position', 'float', 'clear', 'overflow'
 ];
 element.styleAttributesPx = [
 'padding-top','padding-right','padding-bottom','padding-left',
 'margin-top','margin-right','margin-bottom','margin-left',
 'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
-'top', 'bottom', 'left', 'right',
-'line-height'
+'top', 'bottom', 'left', 'right', 
+'line-height', 'font-size'
 ];
 
 element.shouldProcess = function(dom) {
@@ -150,9 +150,12 @@ element.prototype.copyDOM = function() {
 	// Todo: this width needs to be tested for all types of elements.
 	// should be easy to set up a case in the harness with div's, p's, and body
 	if (this.isBlock) {
-		var oldOverflow = el.css("overflow");
+		var oldStyle = el.attr("style");
 		this.overflowHiddenWidth = el.css("overflow", "hidden").width();
-		el.css("overflow", oldOverflow);
+		
+		if (oldStyle) { el.attr("style", oldStyle); }
+		else { el.removeAttr("style"); }
+		
 		this.isOverflowing = this.overflowHiddenWidth != this.width;
 	}
 	
@@ -168,7 +171,7 @@ element.prototype.copyDOM = function() {
 	}
 	
 	this.text = this.hasOnlyTextNodes ? el.text() : "";
-	this.css.font = $.trim(this.css.fontStyle + " " + this.css.fontWeight + " "  + this.css.fontSize + " " + this.css.fontFamily);
+	this.css.font = $.trim(this.css.fontStyle + " " + this.css.fontWeight + " "  + this.css.fontSize + "px " + this.css.fontFamily);
 	
 	this.css.outerHeight = 
 		this.height + 
@@ -194,6 +197,22 @@ element.prototype.copyDOM = function() {
 		this.css.marginLeft +
 		this.css.marginRight;
 	
+	// innerOffset: where to start printing content from within the context of the element.
+	this.css.innerOffset = {
+		left: this.css.marginLeft + this.css.borderLeftWidth + this.css.paddingLeft,
+		top: this.css.marginTop + this.css.borderTopWidth + this.css.paddingTop
+	};
+	
+	this.css.innerHeight = 
+		this.height + 
+		this.css.paddingBottom + 
+		this.css.paddingTop;
+		
+	this.css.innerWidth = 
+		this.width + 
+		this.css.paddingLeft + 
+		this.css.paddingRight;
+		
 	this.shouldRender = (this.css.outerWidthMargins > 0 && this.css.outerHeightMargins > 0);
 	
 	
@@ -203,11 +222,11 @@ element.prototype.copyDOM = function() {
 		var newHtml = "<span id='measure'>x</span>";
 		var measured = el.html(newHtml).find("#measure");
 		var textStart = el.position();
-	
 		if (!this.css.lineHeight) {
 			this.css.lineHeight = measured.height();
 		}
-	
+		el.html(oldHtml);
+		
 		this.textStartsOnDifferentLine = 
 			(textStart.left != this.position.left) ||  
 			(textStart.top != this.position.top);
@@ -216,21 +235,8 @@ element.prototype.copyDOM = function() {
 			top: textStart.top - this.position.top,
 			left: textStart.left - this.position.left
 		};
-	
-	/*
-	this.textStart = { 
-		top:  textStart.top - this.offset.top, 
-		left: textStart.left - this.offset.top
-	};*/
-	
-	if (this.textStartsOnDifferentLine) {
-		log("FOUND INTERESTING ONE HERE", this.text, this.textStart.left, this.offset.left, this.textStart.top, this.offset.top, this.css.marginTop);
-	}
-	else {
-	
-		log("UNINT", this.text, this.textStart.left, this.offset.left, this.textStart.top, this.offset.top, this.css.marginTop);
-	}
-	el.html(oldHtml);
+		this.css.textBaselinePx = (this.css.lineHeight) - ((this.css.lineHeight - this.css.fontSize) / 2);
+		
 	}
 };
 
@@ -280,8 +286,6 @@ element.prototype.precalculateCanvas = function() {
 	
 	var offsetLeft = this.css.marginLeft;
 	var offsetTop = this.css.marginTop;
-	var offsetBottom = this.css.marginBottom;
-	var offsetRight = this.css.marginRight;
 	
 	var borderLeftWidth = this.css.borderLeftWidth;
 	if (borderLeftWidth) {		
@@ -306,39 +310,43 @@ element.prototype.precalculateCanvas = function() {
 			offsetTop, borderRightWidth, this.css.outerHeight);
 	}
 	
-	offsetTop += borderTopWidth;
-	offsetRight += borderRightWidth;
-	offsetBottom += borderBottomWidth;
-	offsetLeft += borderLeftWidth;
-	
-	offsetTop += this.css.paddingTop;
-	offsetRight += this.css.paddingRight;
-	offsetBottom += this.css.paddingBottom;
-	offsetLeft += this.css.paddingLeft;
-	var lines = [];
-	
 	if (this.hasOnlyTextNodes) {
+		
+		// Time to print out some text, don't have to worry about any more elements changing styles
 		
   		ctx.font = this.css.font;
   		ctx.fillStyle = this.css.color;
 		ctx.textBaseline = "bottom";
 		
-		var startX = offsetLeft; // this.textStart.left;
+		var startX = this.css.innerOffset.left;
+		var startY = this.css.innerOffset.top;
+		
 		if (this.textStartsOnDifferentLine) {
 			startX = this.textStart.left;
 		}
 		
-		var lines = getLines(ctx,this.text,this.overflowHiddenWidth, startX);
-		
+		var lines = getLines(ctx, this.text, this.overflowHiddenWidth, startX);
+	
 		log1("Recieved lines", lines, startX, this.overflowHiddenWidth, this.css.outerWidthMargins);
-		var lastY = this.css.lineHeight;
+		
 		for (var j = 0; j < lines.length; j++) {
-		    log2("Rendering Text", lines[j], startX, offsetTop + lastY);
+		
+		    //log2("Rendering Text", lines[j], startX, offsetTop + lastY);
+		    
+		    // Push down to next line of printing
+		   // error(this.css.lineHeight + " " +  this.css.fontSize + " " + this.css.textBaselinePx);
+		    startY = startY + this.css.textBaselinePx; // ((this.css.lineHeight - this.css.fontSize) / 2);
+		    
 		    if (lines[j] != ' ') { 
-		    	ctx.fillText(lines[j],  startX, offsetTop + lastY);
-		    	lastY += this.css.lineHeight;
+		    
+		    if (startY > (this.css.innerHeight + this.css.textBaselinePx)) {
+		    	error("Text parsing: '" + lines[j] + "' is too low (" + startY + ", " + this.css.innerHeight + ", " + this.css.textBaselinePx + ")");
 		    }
-		    startX = offsetLeft;
+		    	ctx.fillText(lines[j], startX, startY);
+		    }
+		    
+		    // reset in case this started at a different place (textStartsOnDifferentLine)
+		    startX = this.css.innerOffset.left;
 		}
 	}
 	else {
