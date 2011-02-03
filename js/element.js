@@ -39,7 +39,7 @@ $.fn.trimMultiple = function(str) {
 };
 
 element.LOGLEVELS = {RELEASE: 0, NORMAL: 1, VERBOSE: 2};
-element.logLevel = element.LOGLEVELS.NORMAL;
+element.logLevel = element.LOGLEVELS.RELEASE;
 element.drawBoundingBox = false;
 
 element.elID = 0;
@@ -330,7 +330,8 @@ element.prototype.precalculateCanvas = function() {
 			startX = this.textStart.left;
 		}
 		
-		var lines = getLines(ctx, this.text, this.overflowHiddenWidth, startX);
+		var lines = wordWrap(ctx, this.text, this.overflowHiddenWidth, 
+			startX, !this.textStartsOnDifferentLine);
 	
 		log2("Recieved lines", lines, startX, this.overflowHiddenWidth, this.css.outerWidthMargins);
 		
@@ -346,7 +347,6 @@ element.prototype.precalculateCanvas = function() {
 		    if (lines[j] != ' ') { 
 		    
 		    if (startY > minimumTextY) {
-		    	//log("err", this, minimumTextY, lines);
 		    	error("Text parsing: '" + lines[j] + "' is too low (" + startY + ", " + this.css.innerHeight + ", " + minimumTextY + ")");
 		    }
 		    	ctx.fillText(lines[j], startX, startY);
@@ -364,7 +364,7 @@ element.prototype.precalculateCanvas = function() {
 	
 };
 
-function getLines(ctx, phrase, maxWidth, initialOffset) {
+function wordWrap(ctx, phrase, maxWidth, initialOffset, isNewLine) {
 	var words = phrase.split(" ");
 	var lastLine = [];
 	var lastX = initialOffset || 0;
@@ -375,43 +375,43 @@ function getLines(ctx, phrase, maxWidth, initialOffset) {
 		if (word == "") { continue; }
 		
 		var widthWithSpace = ctx.measureText(word + ' ').width;
-		
-		
-		// Last word on a line doesn't need the space
-	    /*if ((lastX + widthWithSpace) > maxWidth) {
+	    
+	    // Handle edge case where word doesn't fit with space, but does without.
+	    // Want to still add it to the line, and the next word will get pushed down
+	    if ((lastX + widthWithSpace) > maxWidth) {
 	    	var widthNoSpace = ctx.measureText(word).width;
 	    	if ((lastX + widthNoSpace) <= maxWidth) {
-	    		log("weird case", word);
-	    		lastLine.push(word);
-	    		output.push(lastLine.join(' '));
-	    		lastX = 0;
-	    		lastLine = [];
-	    		continue;
+	    		widthWithSpace = widthNoSpace;
 	    	}
-	    }*/
-	    
-	    if ((lastX + widthWithSpace) > maxWidth) {
-	    	widthWithSpace = ctx.measureText(word).width;
 	    }
 	    
-		lastX += widthWithSpace
+		lastX += widthWithSpace;
 		
-		
-		if (lastLine.length == 0 && lastX > maxWidth) {
-	    	output.push(' ');
-	    	lastLine = [];
-	    	lastX = 0;
-	    }
-	    
-	    //lastLine.push(word);
-	    
 	    if (lastX > maxWidth) {
-	    	output.push(lastLine.join(' '));
-	    	lastX = 0;
-	    	lastLine = [];
-	    } 
+			// It is time for a new line.
+	    
+	    	var isFirstWord = (lastLine.length == 0) && isNewLine;
 	    	
-	    lastLine.push(word);
+	    	if (isFirstWord) {
+				// Need it to get printed because it's the only thing in the line.
+	    		lastX = 0;
+	    		output.push(word);
+	    	}
+	    	else {
+	    		// Start the next line, first rendering out the current one if necessary.
+	    		// This could be the case where a line came in starting nearly done, and we couldn't
+	    		// even get the first word in before getting too big.
+	    		if (lastLine.length) { output.push(lastLine.join(' ')); }
+	    		isNewLine = true;
+	    		lastX = widthWithSpace;
+	    		lastLine = [word];
+	    	}
+	    } 
+	    else {
+	    	// Normal case - 
+	    	lastLine.push(word);
+	    }
+	    	
 	    
 	    
 	}
