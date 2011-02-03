@@ -3,8 +3,8 @@
 <head>
 <link rel="stylesheet" href="css/blueprint.css" />
 <style>
-iframe { width: 400px; height 400px; }
-.frame, .canvas { float:left;  }
+iframe { width:100%; }
+.frame, .canvas { float:left; width: 400px; height:400px; overflow:scroll; }
 h2 { border-bottom: dashed 2px #eee; border-top: dashed 2px #eee; }
 .clear { clear: both; }
 #tests { }
@@ -42,6 +42,8 @@ h2 { border-bottom: dashed 2px #eee; border-top: dashed 2px #eee; }
 		<p data-debug="true">Wh<span>a</span>t</p>
 </script>
 
+<script type='text/html' data-description='External Stylesheet' data-src='tests/blueprintsample.html'>
+</script>
 <script type='text/html'>
 	<style>
 		body {font-size:76%; border: solid 3px;} 

@@ -114,6 +114,7 @@ element.prototype.copyDOM = function() {
 	this.position = el.position();
 	this.height = el.height();
 	this.width = this.overflowHiddenWidth = el.width();
+	
 	this.isBlock = this.css.display == "block" || this.tagName == "body";
 	
 	if (this.isBlock) {
