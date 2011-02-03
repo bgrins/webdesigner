@@ -79,7 +79,7 @@ function htmlToCanvas(body, canvas, width) {
 
 function element(DOMElement) {
 
-	log2("initializing element", DOMElement, DOMElement.nodeType);
+	log1("initializing element", DOMElement, DOMElement.nodeType);
 	
 	if (!element.shouldProcess(DOMElement)) {
 		return error("Invalid element passed for processing");
@@ -252,7 +252,7 @@ element.prototype.renderToCanvas = function(canvas) {
 		x = this.offsetRenderBox.left, y = this.offsetRenderBox.top,
 		w = this.css.outerWidthMargins, h = this.css.outerHeightMargins;
 	
-	log1("Rendering", this.tagName, this.text, x, y, w, h);
+	log2("Rendering", this.tagName, this.text, x, y, w, h);
 	
 	// Draw a bounding box to show where the DOM Element lies
 	if (element.drawBoundingBox || this.drawDebugging) {
@@ -324,6 +324,7 @@ element.prototype.precalculateCanvas = function() {
 		
 		var startX = this.css.innerOffset.left;
 		var startY = this.css.innerOffset.top;
+		var minimumTextY = this.css.outerHeightMargins - this.css.marginBottom - this.css.borderBottomWidth;
 		
 		if (this.textStartsOnDifferentLine) {
 			startX = this.textStart.left;
@@ -331,7 +332,7 @@ element.prototype.precalculateCanvas = function() {
 		
 		var lines = getLines(ctx, this.text, this.overflowHiddenWidth, startX);
 	
-		log1("Recieved lines", lines, startX, this.overflowHiddenWidth, this.css.outerWidthMargins);
+		log2("Recieved lines", lines, startX, this.overflowHiddenWidth, this.css.outerWidthMargins);
 		
 		for (var j = 0; j < lines.length; j++) {
 		
@@ -339,12 +340,14 @@ element.prototype.precalculateCanvas = function() {
 		    
 		    // Push down to next line of printing
 		   // error(this.css.lineHeight + " " +  this.css.fontSize + " " + this.css.textBaselinePx);
+		    
 		    startY = startY + this.css.textBaselinePx; // ((this.css.lineHeight - this.css.fontSize) / 2);
 		    
 		    if (lines[j] != ' ') { 
 		    
-		    if (startY > (this.css.innerHeight + this.css.textBaselinePx)) {
-		    	error("Text parsing: '" + lines[j] + "' is too low (" + startY + ", " + this.css.innerHeight + ", " + this.css.textBaselinePx + ")");
+		    if (startY > minimumTextY) {
+		    	//log("err", this, minimumTextY, lines);
+		    	error("Text parsing: '" + lines[j] + "' is too low (" + startY + ", " + this.css.innerHeight + ", " + minimumTextY + ")");
 		    }
 		    	ctx.fillText(lines[j], startX, startY);
 		    }
@@ -403,7 +406,6 @@ function getLines(ctx, phrase, maxWidth, initialOffset) {
 	    //lastLine.push(word);
 	    
 	    if (lastX > maxWidth) {
-	    	if (phrase == "Nested EM") { log("Adding", lastX, maxWidth, initialOffset); }
 	    	output.push(lastLine.join(' '));
 	    	lastX = 0;
 	    	lastLine = [];
@@ -416,7 +418,7 @@ function getLines(ctx, phrase, maxWidth, initialOffset) {
 	
 	
 	if (lastLine.length) {	
-		log("FOUND last", output, lastLine.join(' '));
+		log2("FOUND last", output, lastLine.join(' '));
 		output.push(lastLine.join(' '));
 	}
 	
