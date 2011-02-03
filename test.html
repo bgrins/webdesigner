@@ -1,13 +1,16 @@
 <!doctype html>
 <html>
 <head>
+<link rel="stylesheet" href="css/blueprint.css" />
 <style>
 iframe { width: 400px; height 400px; }
 .frame, .canvas { float:left;  }
+h2 { border-bottom: dashed 2px #eee; border-top: dashed 2px #eee; }
 .clear { clear: both; }
 #tests { }
+.result { margin: 20px 3px; }
+#testTemplate { display:none; }
 </style>
-<link rel="stylesheet" href="css/blueprint.css" />
 <script type='text/javascript' src='js/jquery-1.4.4.js'></script>
 <script type='text/javascript' src='js/element.js'></script>
 <script type='text/javascript' src='js/test.js'></script>
@@ -18,7 +21,7 @@ iframe { width: 400px; height 400px; }
 
 <div id='tests'></div>
 <div id='testTemplate'>
-<div class='result'><div class='frame'></div><div class='canvas'></div><br class='clear' /></div>
+<div class='result'><h2></h2><div class='frame'></div><div class='canvas'></div><br class='clear' /></div>
 </div>
 
 <script type='text/html' data-description='Basic Style Test'>

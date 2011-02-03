@@ -16,6 +16,7 @@ $(function() {
 		var results = $($("#testTemplate").html()).appendTo($("#tests"));
 		data.push($(this).html());
 		var ind = data.length - 1;
+		results.find("h2").text($(this).data("description") || ("Test " + ind));
 	    var iframe = $("<iframe onload='frameLoaded(this, "+ind+");' src='javascript:;' />").
 	    	appendTo(results.find(".frame"));
 	    
