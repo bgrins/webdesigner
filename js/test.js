@@ -7,10 +7,12 @@ var blankSrc = "javascript:void(0);";
 var data = [];
 function frameLoaded(frame, ind) {
 	var body = $(frame).contents().find("body");
-	$(frame).height(body[0].scrollHeight).width(body[0].scrollWidth);
 	if (frame.src == blankSrc) {
 		body.html(data[ind]);
 	}
+	
+	$(frame).height(body[0].scrollHeight).width(body[0].scrollWidth);
+
 	var canvas = document.createElement("canvas");
 	htmlToCanvas(body[0], canvas);
 	$(frame).closest(".result").find('.canvas').append(canvas);
