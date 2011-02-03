@@ -164,14 +164,10 @@ element.prototype.copyDOM = function() {
 	
 	// Todo: get a better measurement of line height, actually breaking the text up into lines
 	var oldHtml = el.html();
-	var newHtml = "x";
-	var measured = el.html(newHtml);
-	var measuredHeight = measured.height();
+	var newHtml = "<span id='measure'>x</span>";
+	var measured = el.html(newHtml).find("#measure");
 	this.textStart = el.offset();
-	log("measured height", measuredHeight);
-	
-	this.lineheight = measuredHeight;
-	
+	this.lineheight = measured.height();
 	el.html(oldHtml);
 };
 
@@ -179,12 +175,8 @@ element.prototype.renderToCanvas = function(canvas) {
 	
 	if (!this.shouldRender) { return; }
 	
-	/*
-	log("rendering", this.tagName, 
-		this.canvas.width, canvas.width,
-		this.canvas.height, canvas.height
-	);
-	*/
+	//log("rendering", this.tagName, this.canvas.width, canvas.width, this.canvas.height, canvas.height);
+	
 	var ctx = canvas.getContext("2d");
 	
 	if (element.drawBoundingBox || this.drawDebugging) {
@@ -268,8 +260,8 @@ element.prototype.precalculateCanvas = function() {
   		ctx.font = this.css.font;
   		ctx.fillStyle = this.css.color;
 		ctx.textBaseline = "bottom";
-		
-		var startX = this.textStart.left;
+		log(this.offset.left);
+		var startX = this.textStart.left - this.offset.left;
 		var lines = getLines2(ctx,this.text,this.overflowHiddenWidth);
 		var lastY = 0;
 		for (var j = 0; j < lines.length; j++) {
@@ -291,7 +283,6 @@ function getLines2(ctx, phrase, maxWidth) {
 	var words = phrase.split(" ");
 	var lastLine = [];
 	var lastX = 0;
-	var lastY = 0;
 	var output = [];
 	
 	for (var i = 0; i < words.length; i++) {
@@ -299,7 +290,8 @@ function getLines2(ctx, phrase, maxWidth) {
 		if (word == "") { continue; }
 	    lastX += ctx.measureText(word + ' ').width;
 	    lastLine.push(word);
-	    if (lastX > maxWidth) {
+	    
+	    if (lastLine.length == 0 || lastX > maxWidth) {
 	    	output.push(lastLine.join(' '));
 	    	lastX = 0;
 	    	lastLine = [];
