@@ -8,7 +8,6 @@ var data = [];
 function frameLoaded(frame, ind) {
 	var body = $(frame).contents().find("body");
 	$(frame).height(body[0].scrollHeight).width(body[0].scrollWidth);
-	console.log(body.height(), body[0].scrollHeight, body[0])
 	if (frame.src == blankSrc) {
 		body.html(data[ind]);
 	}

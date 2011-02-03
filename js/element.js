@@ -3,6 +3,17 @@ function log() {
 		console.log(Array.prototype.slice.apply(arguments));
 	}
 }
+
+function log1() {
+	if (element.logLevel >= 1) {
+		log.apply(this, arguments);
+	}
+}
+function log2() {
+	if (element.logLevel >= 2) {
+		log.apply(this, arguments);
+	}
+}
 function error(msg) {
 	throw "[Web Designer] " + msg;
 	return false;
@@ -17,6 +28,9 @@ $.fn.wrapSiblingTextNodes = function(wrapper) {
 		}
 	});
 };
+
+element.LOGLEVELS = {RELEASE: 0, NORMAL: 1, VERBOSE: 2};
+element.logLevel = element.LOGLEVELS.NORMAL;
 
 element.elID = 0;
 element.ignoreTags = { 'style':1, 'br': 1 };
@@ -48,7 +62,7 @@ function htmlToCanvas(body, canvas) {
 
 function element(DOMElement) {
 	
-	//log("initializing element", DOMElement);
+	log2("initializing element", DOMElement);
 	
 	DOMElement._element = this;
 	
@@ -138,7 +152,7 @@ element.prototype.copyDOM = function() {
 	
 	this.text = this.hasOnlyTextNodes ? $.trim(el.text()) : "";
 	this.css.font = $.trim(this.css.fontStyle + " " + this.css.fontWeight + " "  + this.css.fontSize + " " + this.css.fontFamily);
-	log(this.css.font);
+	
 	this.css.outerHeight = 
 		this.height + 
 		this.css.paddingTop +
@@ -182,7 +196,7 @@ element.prototype.renderToCanvas = function(canvas) {
 		x = this.offsetRenderBox.left, y = this.offsetRenderBox.top,
 		w = this.css.outerWidthMargins, h = this.css.outerHeightMargins;
 	
-	log("Rendering", this.tagName, x, y, w, h);
+	log1("Rendering", this.tagName, x, y, w, h);
 	
 	// Draw a bounding box to show where the DOM Element lies
 	if (element.drawBoundingBox || this.drawDebugging) {
@@ -213,7 +227,7 @@ element.prototype.precalculateCanvas = function() {
 	this.canvas.width = this.css.outerWidthMargins;
 	this.canvas.height = this.css.outerHeightMargins;
 	
-	log("Precalculating", this.tagName, this.canvas.height,  this.height, this.canvas.width, this.width);
+	log2("Precalculate Canvas", this.tagName, this.canvas.height,  this.height, this.canvas.width, this.width);
 	
 	var canvas = this.canvas;
 	var ctx = canvas.getContext("2d");
@@ -269,7 +283,7 @@ element.prototype.precalculateCanvas = function() {
 		var lines = getLines(ctx,this.text,this.overflowHiddenWidth, startX);
 		var lastY = this.lineheight;
 		for (var j = 0; j < lines.length; j++) {
-		    log("Rendering Text", lines[j], offsetTop, lastY);
+		    log2("Rendering Text", lines[j], offsetTop, lastY);
 		    if (lines[j] != ' ') { 
 		    ctx.fillText(lines[j], offsetLeft + startX, offsetTop + lastY);
 		    lastY += this.lineheight;
