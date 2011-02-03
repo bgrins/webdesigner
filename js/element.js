@@ -40,10 +40,10 @@ $.fn.trimMultiple = function(str) {
 
 element.LOGLEVELS = {RELEASE: 0, NORMAL: 1, VERBOSE: 2};
 element.logLevel = element.LOGLEVELS.NORMAL;
+element.drawBoundingBox = false;
 
 element.elID = 0;
-element.ignoreTags = { 'style':1, 'br': 1 };
-element.drawBoundingBox = true;
+element.ignoreTags = { 'style':1, 'br': 1, 'script': 1, 'link': 1 };
 element.styleAttributes = [
 'border-top-style', 'border-top-color',
 'border-right-style', 'border-right-color',

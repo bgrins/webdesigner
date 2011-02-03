@@ -8,7 +8,7 @@ body, html, #all { width: 100%; height: 100%; padding: 0; margin: 0; }
 
 #scroller {overflow:scroll; background:grey; }
 #scroller .filler {  }
-#content { height:300px; width:600px; background-color:white; }
+#content { /*height:300px; width:600px;*/ background-color:white; }
 #header { height:50px; }
 #sidebar { width:50px; }
 
@@ -19,4 +19,4 @@ body, html, #all { width: 100%; height: 100%; padding: 0; margin: 0; }
 #ruler-x div { height:16px; }
 #ruler-y div { width:16px; }
 
-#mirror { /*display:none;*/ }
+#mirror { display:none; }

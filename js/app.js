@@ -1,14 +1,33 @@
 
 var app = { };
 
-$(function() {
+app.loadProject = function(src) {
+	$("#mirror").attr("src", src);
+}
+
+function frameLoaded(frame) {
+
+	var mirror = $(frame).contents();
+	var mirrorBody = mirror.find("body").attr("data-debug", "true");
 	
-	var scroller = $("#scroller");
+	var h = mirrorBody[0].scrollHeight;
+	var w = mirrorBody[0].scrollWidth;
+	
+	$(frame).height(mirrorBody[0].scrollHeight).width(mirrorBody[0].scrollWidth);
+
+	//mirrorBody.html($("#loadTemplate").html());
 	var canvas = $("#c");
 	
-	canvas[0].width = canvas.parent().width();
-	canvas[0].height = canvas.parent().height();
+	//canvas[0].width = canvas.parent().width();
+	//canvas[0].height = canvas.parent().height();
+	htmlToCanvas(mirrorBody[0], canvas[0]);
 	
+	
+}
+
+$(function() {
+	app.loadProject("load/blueprint.html");
+	var scroller = $("#scroller");
 	$(window).resize(function() {
 		app.rulers.draw();
 	}).resize();
@@ -16,23 +35,6 @@ $(function() {
 	scroller.scroll(function() {
 		app.rulers.scroll(scroller.scrollLeft(), scroller.scrollTop());
 	});
-
-	var mirror = $("#mirror").contents();
-	var mirrorBody = mirror.find("body").attr("data-debug", "true");
-	
-	mirrorBody.html($("#loadTemplate").html());
-	htmlToCanvas(mirrorBody[0], canvas[0]);
-	/*
-	
-	var elements = [];
-	mirrorBody.find("*").each(function() {
-		elements.push(new element(this));
-	});
-	
-	
-	for (var i = 0; i < elements.length; i++) {
-		elements[i].renderToCanvas(canvas[0]);
-	}*/
 	
 });
 

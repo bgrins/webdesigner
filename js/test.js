@@ -5,6 +5,7 @@ function log() {
 }
 var blankSrc = "javascript:void(0);";
 var data = [];
+element.drawBoundingBox = true;
 function frameLoaded(frame, ind) {
 	var body = $(frame).contents().find("body");
 	if (frame.src == blankSrc) {
@@ -17,9 +18,9 @@ function frameLoaded(frame, ind) {
 	htmlToCanvas(body[0], canvas);
 	$(frame).closest(".result").find('.canvas').append(canvas);
 }
+
 $(function() {
-	$("script[type='text/html']").each(function() {
-		
+	$("script[type='text/html']").each(function() {		
 		var results = $($("#testTemplate").html()).appendTo($("#tests"));
 		data.push($(this).html());
 		var ind = data.length - 1;
