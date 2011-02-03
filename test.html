@@ -24,13 +24,16 @@ h2 { border-bottom: dashed 2px #eee; border-top: dashed 2px #eee; }
 <div class='result'><h2></h2><div class='frame'></div><div class='canvas'></div><br class='clear' /></div>
 </div>
 
-<script type='text/html' data-description='Basic Style Test'>
-	<style>body {font-size:76%;} strong{ font-size: 1.5em; } p.test { border: solid 1px;}</style>
+<script type='text/html' data-description='Basic Font Styles'>
+	<style>body { font-size:110%;} strong{ font-size: 1.5em; } p { font-size:76%; border: solid 10px;}</style>
 	
-	text node <strong>strong</strong> another text <span>ok <em>emphasized</em></span><p class="test">inside test</p><br style='display:none;' />x
-	
-	
-	<span><em>emphasized</em><br style='display:none;' />x</span>
+	<strong>Some strong text <em>Nested EM2hhhhhhhhh That will break kjhjkjhkjjkhjkhjkhjkhkjhjhkhjhjhjkjhjhhjjhkhjkjkhjkhhkjhkkhj</em></strong><br />
+	<em>Some emphasized text <strong>Nested Strong</strong></em><br />
+	<p>
+		This 'p' should be smaller<strong>Some strong text <em>Nested EM</em></strong><br />
+		<em>Some emphasized text <strong>Nested Strong</strong></em><br />
+	</p>
+	<p>text node <strong>strong</strong> another text <span>ok <em>emphasized</em></span> inside test</p>
 </script>
 
 <script type='text/html'>

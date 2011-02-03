@@ -28,6 +28,9 @@ $.fn.wrapSiblingTextNodes = function(wrapper) {
 		}
 	});
 };
+$.fn.trimMultiple = function(str) {
+
+};
 
 element.LOGLEVELS = {RELEASE: 0, NORMAL: 1, VERBOSE: 2};
 element.logLevel = element.LOGLEVELS.NORMAL;
@@ -48,7 +51,8 @@ element.styleAttributesPx = [
 'padding-top','padding-right','padding-bottom','padding-left',
 'margin-top','margin-right','margin-bottom','margin-left',
 'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
-'top', 'bottom', 'left', 'right'
+'top', 'bottom', 'left', 'right',
+'line-height'
 ];
 
 
@@ -125,7 +129,7 @@ element.prototype.copyDOM = function() {
 	// Offset does not take body's border into account http://bugs.jquery.com/ticket/7948
 	var body = this._domElement.ownerDocument.body._element;
 	this.offsetRenderBox = { 
-		top: Math.max(0, this.offset.top - this.css.marginTop + body.css.borderTopWidth), 
+		top:  Math.max(0, this.offset.top - this.css.marginTop + body.css.borderTopWidth), 
 		left: Math.max(0, this.offset.left - this.css.marginLeft + body.css.borderLeftWidth)
 	};
 	
@@ -150,7 +154,7 @@ element.prototype.copyDOM = function() {
 		if (childNodes[i].nodeType != 3) { this.hasOnlyTextNodes = false; }
 	}
 	
-	this.text = this.hasOnlyTextNodes ? $.trim(el.text()) : "";
+	this.text = this.hasOnlyTextNodes ? el.text() : "";
 	this.css.font = $.trim(this.css.fontStyle + " " + this.css.fontWeight + " "  + this.css.fontSize + " " + this.css.fontFamily);
 	
 	this.css.outerHeight = 
@@ -179,13 +183,42 @@ element.prototype.copyDOM = function() {
 	
 	this.shouldRender = (this.css.outerWidthMargins > 0 && this.css.outerHeightMargins > 0);
 	
-	// Todo: get a better measurement of line height, actually breaking the text up into lines
-	var oldHtml = el.html();
-	var newHtml = "<span id='measure'>x</span>";
-	var measured = el.html(newHtml).find("#measure");
-	this.textStart = el.offset();
-	this.lineheight = measured.height();
+	
+	if (this.hasOnlyTextNodes) {
+		// Todo: get a better measurement of line height, actually breaking the text up into lines
+		var oldHtml = el.html();
+		var newHtml = "<span id='measure'>x</span>";
+		var measured = el.html(newHtml).find("#measure");
+		var textStart = el.position();
+	
+		if (!this.css.lineHeight) {
+			this.css.lineHeight = measured.height();
+		}
+	
+		this.textStartsOnDifferentLine = 
+			(textStart.left != this.position.left) ||  
+			(textStart.top != this.position.top);
+			
+		this.textStart = {
+			top: textStart.top - this.position.top,
+			left: textStart.left - this.position.left
+		};
+	
+	/*
+	this.textStart = { 
+		top:  textStart.top - this.offset.top, 
+		left: textStart.left - this.offset.top
+	};*/
+	
+	if (this.textStartsOnDifferentLine) {
+		log("FOUND INTERESTING ONE HERE", this.text, this.textStart.left, this.offset.left, this.textStart.top, this.offset.top, this.css.marginTop);
+	}
+	else {
+	
+		log("UNINT", this.text, this.textStart.left, this.offset.left, this.textStart.top, this.offset.top, this.css.marginTop);
+	}
 	el.html(oldHtml);
+	}
 };
 
 element.prototype.renderToCanvas = function(canvas) {
@@ -196,7 +229,7 @@ element.prototype.renderToCanvas = function(canvas) {
 		x = this.offsetRenderBox.left, y = this.offsetRenderBox.top,
 		w = this.css.outerWidthMargins, h = this.css.outerHeightMargins;
 	
-	log1("Rendering", this.tagName, x, y, w, h);
+	log1("Rendering", this.tagName, this.text, x, y, w, h);
 	
 	// Draw a bounding box to show where the DOM Element lies
 	if (element.drawBoundingBox || this.drawDebugging) {
@@ -269,8 +302,6 @@ element.prototype.precalculateCanvas = function() {
 	offsetRight += this.css.paddingRight;
 	offsetBottom += this.css.paddingBottom;
 	offsetLeft += this.css.paddingLeft;
-	
-	var lineheight = this.lineheight;
 	var lines = [];
 	
 	if (this.hasOnlyTextNodes) {
@@ -279,17 +310,22 @@ element.prototype.precalculateCanvas = function() {
   		ctx.fillStyle = this.css.color;
 		ctx.textBaseline = "bottom";
 		
-		var startX = this.textStart.left - this.offset.left;
+		var startX = offsetLeft; // this.textStart.left;
+		if (this.textStartsOnDifferentLine) {
+			startX = this.textStart.left;
+		}
+		
 		var lines = getLines(ctx,this.text,this.overflowHiddenWidth, startX);
-		var lastY = this.lineheight;
+		
+		log1("Recieved lines", lines, startX, this.overflowHiddenWidth, this.css.outerWidthMargins);
+		var lastY = this.css.lineHeight;
 		for (var j = 0; j < lines.length; j++) {
-		    log2("Rendering Text", lines[j], offsetTop, lastY);
+		    log2("Rendering Text", lines[j], startX, offsetTop + lastY);
 		    if (lines[j] != ' ') { 
-		    ctx.fillText(lines[j], offsetLeft + startX, offsetTop + lastY);
-		    lastY += this.lineheight;
-		    
+		    	ctx.fillText(lines[j],  startX, offsetTop + lastY);
+		    	lastY += this.css.lineHeight;
 		    }
-		    startX = 0;
+		    startX = offsetLeft;
 		}
 	}
 	else {
@@ -310,21 +346,52 @@ function getLines(ctx, phrase, maxWidth, initialOffset) {
 		var word = $.trim(words[i]);
 		if (word == "") { continue; }
 		
-	    lastX += ctx.measureText(word + ' ').width;
+		var widthWithSpace = ctx.measureText(word + ' ').width;
+		
+		
+		// Last word on a line doesn't need the space
+	    /*if ((lastX + widthWithSpace) > maxWidth) {
+	    	var widthNoSpace = ctx.measureText(word).width;
+	    	if ((lastX + widthNoSpace) <= maxWidth) {
+	    		log("weird case", word);
+	    		lastLine.push(word);
+	    		output.push(lastLine.join(' '));
+	    		lastX = 0;
+	    		lastLine = [];
+	    		continue;
+	    	}
+	    }*/
 	    
-	    if (lastLine.length == 0 && lastX > maxWidth) {
+	    if ((lastX + widthWithSpace) > maxWidth) {
+	    	widthWithSpace = ctx.measureText(word).width;
+	    }
+	    
+		lastX += widthWithSpace
+		
+		
+		if (lastLine.length == 0 && lastX > maxWidth) {
 	    	output.push(' ');
 	    	lastLine = [];
+	    	lastX = 0;
 	    }
-	    lastLine.push(word);
+	    
+	    //lastLine.push(word);
+	    
 	    if (lastX > maxWidth) {
+	    	if (phrase == "Nested EM") { log("Adding", lastX, maxWidth, initialOffset); }
 	    	output.push(lastLine.join(' '));
 	    	lastX = 0;
 	    	lastLine = [];
-	    }
+	    } 
+	    	
+	    lastLine.push(word);
+	    
+	    
 	}
 	
-	if (lastLine.length) {
+	
+	if (lastLine.length) {	
+		log("FOUND last", output, lastLine.join(' '));
 		output.push(lastLine.join(' '));
 	}
 	
