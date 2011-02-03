@@ -25,7 +25,7 @@ h2 { border-bottom: dashed 2px #eee; border-top: dashed 2px #eee; }
 </div>
 
 <script type='text/html' data-description='Basic Font Styles'>
-	<style>body { font-size:110%;} strong{ font-size: 1.5em; } p { font-size:76%; border: solid 10px;}</style>
+	<style>body { border:3px solid; font-size:110%;} strong{ font-size: 1.5em; } p { font-size:76%; border: solid 10px;}</style>
 	
 	<strong>Some strong text <em>Nested EM2hhhhhhhhh That will break kjhjkjhkjjkhjkhjkhjkhkjhjhkhjhjhjkjhjhhjjhkhjkjkhjkhhkjhkkhj</em></strong><br />
 	<em>Some emphasized text <strong>Nested Strong</strong></em><br />
@@ -58,4 +58,14 @@ h2 { border-bottom: dashed 2px #eee; border-top: dashed 2px #eee; }
 	text node <br /> and break <div>ok</div> 
 	what next <strong data-debug="true">stronf dsalsdfjlksdaf ljfsd  lkfsdsdfka fsdksdfajsf kfsdjfdskjfsadfaksdfjdkg</strong> <span>asdf adsdsa</span>
 	<p class='test'>Left alon</p>
+</script>
+
+<script type='text/html' data-description='Test Invalid Nodes'>
+	<style>
+		body {font-size:76%; border: solid 3px;} 
+	</style>
+	<!-- Don't try and parse this one out -->
+	<p>This should be the 
+	<!-- This could mess it up too -->
+	only thing that prints</p>
 </script>

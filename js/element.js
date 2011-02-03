@@ -18,6 +18,9 @@ function error(msg) {
 	throw "[Web Designer] " + msg;
 	return false;
 }
+
+// Convert: <div>Hi <strong>there.</strong> <!-- some comment --></div>
+// Into: <div><span>Hi </span><strong>there.</strong></div>
 $.fn.wrapSiblingTextNodes = function(wrapper) {
 	this.contents().each(function() {
 		if (this.nodeType == 3) {
@@ -25,6 +28,9 @@ $.fn.wrapSiblingTextNodes = function(wrapper) {
 			if ($(this.parentNode).children().length) {
 				$(this).wrap(wrapper);
 			}
+		}
+		else if (this.nodeType != 1) {
+			$(this).remove();
 		}
 	});
 };
@@ -55,6 +61,9 @@ element.styleAttributesPx = [
 'line-height'
 ];
 
+element.shouldProcess = function(dom) {
+	return (dom.nodeType == 1) && (!element.ignoreTags[dom.tagName]);
+};
 
 function htmlToCanvas(body, canvas) {
 	var el = new element(body);
@@ -65,8 +74,12 @@ function htmlToCanvas(body, canvas) {
 }
 
 function element(DOMElement) {
+
+	log2("initializing element", DOMElement, DOMElement.nodeType);
 	
-	log2("initializing element", DOMElement);
+	if (!element.shouldProcess(DOMElement)) {
+		return error("Invalid element passed for processing");
+	}
 	
 	DOMElement._element = this;
 	
@@ -87,9 +100,8 @@ function element(DOMElement) {
 	this.childElements = [];
 	for (var i = 0; i < this.childNodes.length; i++) {
 		var child = this.childNodes[i];
-		var ignore = child.nodeType == 3 || element.ignoreTags[child.tagName];
-		if (!ignore) {
-	   		this.childElements.push(new element(this.childNodes[i]));
+		if (element.shouldProcess(child)) {
+	   		this.childElements.push(new element(child));
 	   	}
 	}
 	
@@ -135,6 +147,8 @@ element.prototype.copyDOM = function() {
 	
 	this.isBlock = this.css.display == "block" || this.tagName == "body";
 	
+	// Todo: this width needs to be tested for all types of elements.
+	// should be easy to set up a case in the harness with div's, p's, and body
 	if (this.isBlock) {
 		var oldOverflow = el.css("overflow");
 		this.overflowHiddenWidth = el.css("overflow", "hidden").width();
@@ -148,7 +162,6 @@ element.prototype.copyDOM = function() {
 	}
 	
 	this.hasOnlyTextNodes = true;
-	this.text = "";
 	var childNodes = this._domElement.childNodes;
 	for (var i = 0; i < childNodes.length; i++) {
 		if (childNodes[i].nodeType != 3) { this.hasOnlyTextNodes = false; }
