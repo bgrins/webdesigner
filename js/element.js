@@ -260,14 +260,17 @@ element.prototype.precalculateCanvas = function() {
   		ctx.font = this.css.font;
   		ctx.fillStyle = this.css.color;
 		ctx.textBaseline = "bottom";
-		log(this.offset.left);
+		
 		var startX = this.textStart.left - this.offset.left;
-		var lines = getLines2(ctx,this.text,this.overflowHiddenWidth);
-		var lastY = 0;
+		var lines = getLines2(ctx,this.text,this.overflowHiddenWidth, startX);
+		var lastY = this.lineheight;
 		for (var j = 0; j < lines.length; j++) {
-		    lastY += this.lineheight;
-		    log("rendering text", lines[j], offsetLeft, startX);
+		    log("rendering text", lines[j], offsetTop, lastY);
+		    if (lines[j] != ' ') { 
 		    ctx.fillText(lines[j], offsetLeft + startX, offsetTop + lastY);
+		    lastY += this.lineheight;
+		    
+		    }
 		    startX = 0;
 		}
 	}
@@ -279,19 +282,24 @@ element.prototype.precalculateCanvas = function() {
 	
 };
 
-function getLines2(ctx, phrase, maxWidth) {
+function getLines2(ctx, phrase, maxWidth, initialOffset) {
 	var words = phrase.split(" ");
 	var lastLine = [];
-	var lastX = 0;
+	var lastX = initialOffset || 0;
 	var output = [];
 	
 	for (var i = 0; i < words.length; i++) {
 		var word = $.trim(words[i]);
 		if (word == "") { continue; }
+		
 	    lastX += ctx.measureText(word + ' ').width;
-	    lastLine.push(word);
 	    
-	    if (lastLine.length == 0 || lastX > maxWidth) {
+	    if (lastLine.length == 0 && lastX > maxWidth) {
+	    	output.push(' ');
+	    	lastLine = [];
+	    }
+	    lastLine.push(word);
+	    if (lastX > maxWidth) {
 	    	output.push(lastLine.join(' '));
 	    	lastX = 0;
 	    	lastLine = [];
