@@ -6,6 +6,8 @@ body, html, #all { width: 100%; height: 100%; padding: 0; margin: 0; }
 .hbox { -webkit-box-orient: horizontal; -moz-box-orient: horizontal; box-orient: horizontal; }
 .filler {box-flex: 1; -moz-box-flex: 1; -webkit-box-flex: 1;  } 
 
+a.active, a.active:hover { cursor: default; color:orange; }
+
 #scroller {overflow:scroll; background:grey; }
 #scroller .filler {  }
 #content { /*height:300px; width:600px;*/ background-color:white; }
@@ -19,4 +21,4 @@ body, html, #all { width: 100%; height: 100%; padding: 0; margin: 0; }
 #ruler-x div { height:16px; }
 #ruler-y div { width:16px; }
 
-#mirror { display:none; }
+#mirror { position:absolute; left: -10000px; top: -10000px; }

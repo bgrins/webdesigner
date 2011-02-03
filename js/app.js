@@ -2,7 +2,7 @@
 var app = { };
 
 app.loadProject = function(src) {
-	$("#mirror").attr("src", src);
+	$("#mirror").attr("src", $("#src").val());
 }
 
 function frameLoaded(frame) {
@@ -26,8 +26,11 @@ function frameLoaded(frame) {
 }
 
 $(function() {
-	app.loadProject("load/blueprint.html");
 	var scroller = $("#scroller");
+	
+	$("#src").change(app.loadProject);
+	app.loadProject();
+	
 	$(window).resize(function() {
 		app.rulers.draw();
 	}).resize();
@@ -36,6 +39,23 @@ $(function() {
 		app.rulers.scroll(scroller.scrollLeft(), scroller.scrollTop());
 	});
 	
+	$("#header").delegate("a", "click", function() {
+		var mirrorBody = $("#mirror").contents().find("body");
+		var canvas = $("#c")
+		var size = $(this).attr("href").split('#')[1];
+		$(this).parent().find("a").removeClass("active");
+		$(this).addClass("active");
+		$("#mirror").width(size == 'full' ? mirrorBody[0].scrollWidth : size);
+		htmlToCanvas(mirrorBody[0], canvas[0]);
+		/*	
+		if (size == 'full') {
+			htmlToCanvas(mirrorBody[0], canvas[0]);
+		}
+		else {
+			htmlToCanvas(mirrorBody[0], canvas[0], size);
+		}*/
+		return false;
+	});
 });
 
 

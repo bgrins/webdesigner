@@ -65,8 +65,12 @@ element.shouldProcess = function(dom) {
 	return (dom.nodeType == 1) && (!element.ignoreTags[dom.tagName]);
 };
 
-function htmlToCanvas(body, canvas) {
+function htmlToCanvas(body, canvas, width) {
+	if (width) {
+		$(body).width(width);
+	}
 	var el = new element(body);
+	
 	canvas.width = el.css.outerWidthMargins;
 	canvas.height = el.css.outerHeightMargins;
 	el.precalculateCanvas();
