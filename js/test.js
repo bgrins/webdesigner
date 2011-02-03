@@ -7,7 +7,6 @@ function frameLoaded(frame, ind) {
 	var body = $(frame).contents().find("body").html(data[ind]);
 	var canvas = document.createElement("canvas");
 	htmlToCanvas(body[0], canvas);
-	log("done", frame, $(frame).closest(".result"))
 	$(frame).closest(".result").find('.canvas').append(canvas);
 }
 var data = [];

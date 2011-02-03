@@ -1,7 +1,26 @@
+function log() {
+	if (window.console) {
+		console.log(Array.prototype.slice.apply(arguments));
+	}
+}
+function error(msg) {
+	throw "[Web Designer] " + msg;
+	return false;
+}
+$.fn.wrapSiblingTextNodes = function(wrapper) {
+	this.contents().each(function() {
+		if (this.nodeType == 3) {
+			if ($.trim(this.data) == "") { $(this).remove(); }
+			if ($(this.parentNode).children().length) {
+				$(this).wrap(wrapper);
+			}
+		}
+	});
+};
 
 element.elID = 0;
 element.ignoreTags = { 'style':1, 'br': 1 };
-element.drawBoundingBox = false;
+element.drawBoundingBox = true;
 element.styleAttributes = [
 'border-top-style', 'border-top-color',
 'border-right-style', 'border-right-color',
@@ -18,16 +37,6 @@ element.styleAttributesPx = [
 'top', 'bottom', 'left', 'right'
 ];
 
-$.fn.wrapSiblingTextNodes = function(wrapper) {
-	this.contents().each(function() {
-		if (this.nodeType == 3) {
-			if ($.trim(this.data) == "") { $(this).remove(); }
-			if ($(this.parentNode).children().length) {
-				$(this).wrap(wrapper);
-			}
-		}
-	});
-};
 
 function htmlToCanvas(body, canvas) {
 	var el = new element(body);
@@ -39,7 +48,7 @@ function htmlToCanvas(body, canvas) {
 
 function element(DOMElement) {
 	
-	log("initializing element", DOMElement);
+	//log("initializing element", DOMElement);
 	
 	DOMElement._element = this;
 	
@@ -68,14 +77,11 @@ function element(DOMElement) {
 	
 }
 
+
 element.prototype.copyDOM = function() {
 
 	this.nodeType = this._domElement.nodeType;
-	
-	if (this.nodeType == 3) {
-		this.text = $.trim(this._domElement.data);
-		return; 
-	}
+	if (this.nodeType == 3) { return error("Parse Error: Encountered Text Node"); }
 	
 	this.tagName = this._domElement.tagName.toLowerCase();
 	
@@ -97,18 +103,14 @@ element.prototype.copyDOM = function() {
 	}
 	
 	this.offset = el.offset();
-	if (this.parent) {
-		this.offset = {
-			top: this.offset.top + this.parent.css.borderTopWidth, 
-			left: this.offset.left + this.parent.css.borderLeftWidth
-		}
-		this.originalOffset = el.offset();
-	}
-	this.offsetNoMargin = { 
-		top: this.offset.top - this.css.marginTop, 
-		left: this.offset.left - this.css.marginLeft
-	};
 	
+	// Offset needs to be computed with the margin to show where to start the bounding box of element
+	// Offset does not take body's border into account http://bugs.jquery.com/ticket/7948
+	var body = this._domElement.ownerDocument.body._element;
+	this.offsetRenderBox = { 
+		top: Math.max(0, this.offset.top - this.css.marginTop + body.css.borderTopWidth), 
+		left: Math.max(0, this.offset.left - this.css.marginLeft + body.css.borderLeftWidth)
+	};
 	this.position = el.position();
 	this.height = el.height();
 	this.width = this.overflowHiddenWidth = el.width();
@@ -133,7 +135,7 @@ element.prototype.copyDOM = function() {
 		if (childNodes[i].nodeType != 3) { this.hasOnlyTextNodes = false; }
 	}
 	
-	this.text = this.hasOnlyTextNodes ? el.text() : "";
+	this.text = this.hasOnlyTextNodes ? $.trim(el.text()) : "";
 	this.css.font = this.css.fontWeight + " "  + this.css.fontSize + " " + this.css.fontFamily;
 	
 	this.css.outerHeight = 
@@ -159,7 +161,7 @@ element.prototype.copyDOM = function() {
 		this.css.outerWidth + 
 		this.css.marginLeft +
 		this.css.marginRight;
-		
+	
 	this.shouldRender = (this.css.outerWidthMargins > 0 && this.css.outerHeightMargins > 0);
 	
 	// Todo: get a better measurement of line height, actually breaking the text up into lines
@@ -182,13 +184,15 @@ element.prototype.renderToCanvas = function(canvas) {
 	if (element.drawBoundingBox || this.drawDebugging) {
 		ctx.strokeStyle = "#d66";
 		ctx.lineWidth = 1;
-		ctx.strokeRect(this.offset.left, this.offset.top, 
+		ctx.strokeRect(this.offsetRenderBox.left, this.offsetRenderBox.top, 
 			this.css.outerWidthMargins, this.css.outerHeightMargins);
 	}
 	
 	if (this.css.outerWidthMargins > 0 && this.css.outerHeightMargins > 0) {
+		log("RENDERING", this.tagName, this.offset.left, this.offset.top)
+		// DONT RENDER MARGINS??
 		ctx.drawImage(
-			this.canvas, this.offset.left, this.offset.top, 
+			this.canvas, this.offsetRenderBox.left, this.offsetRenderBox.top, 
 			this.css.outerWidthMargins, this.css.outerHeightMargins
 		);
 	}
