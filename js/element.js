@@ -177,24 +177,23 @@ element.prototype.renderToCanvas = function(canvas) {
 	
 	if (!this.shouldRender) { return; }
 	
-	//log("rendering", this.tagName, this.canvas.width, canvas.width, this.canvas.height, canvas.height);
+	var ctx = canvas.getContext("2d"),
+		x = this.offsetRenderBox.left, y = this.offsetRenderBox.top,
+		w = this.css.outerWidthMargins, h = this.css.outerHeightMargins;
 	
-	var ctx = canvas.getContext("2d");
+	log("Rendering", this.tagName, x, y, w, h);
 	
+	// Draw a bounding box to show where the DOM Element lies
 	if (element.drawBoundingBox || this.drawDebugging) {
 		ctx.strokeStyle = "#d66";
 		ctx.lineWidth = 1;
-		ctx.strokeRect(this.offsetRenderBox.left, this.offsetRenderBox.top, 
-			this.css.outerWidthMargins, this.css.outerHeightMargins);
+		ctx.strokeRect(x, y, w, h);
 	}
 	
-	if (this.css.outerWidthMargins > 0 && this.css.outerHeightMargins > 0) {
-		log("RENDERING", this.tagName, this.offset.left, this.offset.top)
-		// DONT RENDER MARGINS??
-		ctx.drawImage(
-			this.canvas, this.offsetRenderBox.left, this.offsetRenderBox.top, 
-			this.css.outerWidthMargins, this.css.outerHeightMargins
-		);
+	// Render the element's canvas onto this canvas.  May eventually need to move
+	// to a getImageData / putImageData model to better use caching	
+	if (w > 0 && h > 0) {
+		ctx.drawImage(this.canvas, x, y, w, h);
 	}
 	
 	for (var i = 0; i < this.childElements.length; i++) {
@@ -213,7 +212,7 @@ element.prototype.precalculateCanvas = function() {
 	this.canvas.width = this.css.outerWidthMargins;
 	this.canvas.height = this.css.outerHeightMargins;
 	
-	// log(this.tagName, this.canvas.height,  this.height, this.canvas.width, this.width);
+	log("Precalculating", this.tagName, this.canvas.height,  this.height, this.canvas.width, this.width);
 	
 	var canvas = this.canvas;
 	var ctx = canvas.getContext("2d");
@@ -269,7 +268,7 @@ element.prototype.precalculateCanvas = function() {
 		var lines = getLines2(ctx,this.text,this.overflowHiddenWidth, startX);
 		var lastY = this.lineheight;
 		for (var j = 0; j < lines.length; j++) {
-		    log("rendering text", lines[j], offsetTop, lastY);
+		    log("Rendering Text", lines[j], offsetTop, lastY);
 		    if (lines[j] != ' ') { 
 		    ctx.fillText(lines[j], offsetLeft + startX, offsetTop + lastY);
 		    lastY += this.lineheight;
