@@ -21,7 +21,7 @@ function frameLoaded(frame) {
 	
 	//canvas[0].width = canvas.parent().width();
 	//canvas[0].height = canvas.parent().height();
-	htmlToCanvas(mirrorBody[0], canvas[0]);
+	html2canvas(mirrorBody[0], canvas[0]);
 	
 	
 }
@@ -47,14 +47,7 @@ $(function() {
 		$(this).parent().find("a").removeClass("active");
 		$(this).addClass("active");
 		$("#mirror").width(size == 'full' ? mirrorBody[0].scrollWidth : size);
-		htmlToCanvas(mirrorBody[0], canvas[0]);
-		/*	
-		if (size == 'full') {
-			htmlToCanvas(mirrorBody[0], canvas[0]);
-		}
-		else {
-			htmlToCanvas(mirrorBody[0], canvas[0], size);
-		}*/
+		html2canvas(mirrorBody[0], canvas[0]);
 		return false;
 	});
 });

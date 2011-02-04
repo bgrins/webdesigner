@@ -68,7 +68,7 @@ element.shouldProcess = function(dom) {
 	return (dom.nodeType == 1) && (!element.ignoreTags[dom.tagName]);
 };
 
-function htmlToCanvas(body, canvas, width) {
+function html2canvas(body, canvas, width) {
 	if (width) {
 		$(body).width(width);
 	}
