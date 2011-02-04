@@ -1,23 +1,21 @@
-function log() {
-	if (window.console) {
-		console.log(Array.prototype.slice.apply(arguments));
-	}
-}
+/*
+html2canvas.js
+Render HTML to a canvas relying on the browser's layout engine
+*/
 
-function log1() {
-	if (element.logLevel >= 1) {
-		log.apply(this, arguments);
-	}
-}
-function log2() {
-	if (element.logLevel >= 2) {
-		log.apply(this, arguments);
-	}
-}
-function error(msg) {
-	throw "[Web Designer] " + msg;
-	return false;
-}
+
+(function() {
+
+window.html2canvas = html2canvas;
+html2canvas.element = element;
+var settings = html2canvas.settings = {
+	drawBoundingBox: false
+};
+
+function log() { if (window.console) { console.log(Array.prototype.slice.apply(arguments)); } }
+function log1() { if (element.logLevel >= 1) { log.apply(this, arguments); } }
+function log2() { if (element.logLevel >= 2) { log.apply(this, arguments); } }
+function error(msg) { throw "[Web Designer] " + msg; return false; }
 
 // Convert: <div>Hi <strong>there.</strong> <!-- some comment --></div>
 // Into: <div><span>Hi </span><strong>there.</strong></div>
@@ -43,7 +41,6 @@ $.fn.wrapSiblingTextNodes = function(wrapper) {
 
 element.LOGLEVELS = {RELEASE: 0, NORMAL: 1, VERBOSE: 2};
 element.logLevel = element.LOGLEVELS.RELEASE;
-element.drawBoundingBox = false;
 
 element.elID = 0;
 element.ignoreTags = { 'style':1, 'br': 1, 'script': 1, 'link': 1 };
@@ -269,7 +266,7 @@ element.prototype.renderToCanvas = function(canvas) {
 	log2("Rendering", this.tagName, this.text, x, y, w, h);
 	
 	// Draw a bounding box to show where the DOM Element lies
-	if (this.jq.attr("data-debug") || this.drawDebugging) {
+	if (this.jq.attr("data-debug") || settings.drawBoundingBox) {
 		ctx.strokeStyle = "#d66";
 		ctx.lineWidth = 1;
 		ctx.strokeRect(x, y, w, h);
@@ -444,3 +441,4 @@ function wordWrap(ctx, phrase, maxWidth, initialOffset, isNewLine) {
 	return output;
 }
 
+})();

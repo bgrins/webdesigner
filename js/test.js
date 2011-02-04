@@ -5,7 +5,9 @@ function log() {
 }
 var blankSrc = "javascript:void(0);";
 var data = [];
-element.drawBoundingBox = true;
+
+html2canvas.settings.drawBoundingBox = true;
+
 function frameLoaded(frame, ind) {
 	var body = $(frame).contents().find("body");
 	if (frame.src == blankSrc) {
