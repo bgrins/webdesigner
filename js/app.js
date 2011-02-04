@@ -17,6 +17,7 @@ function frameLoaded(frame) {
 
 	//mirrorBody.html($("#loadTemplate").html());
 	var canvas = $("#c");
+	$("#content").height(mirrorBody[0].scrollHeight).width(mirrorBody[0].scrollWidth);
 	
 	//canvas[0].width = canvas.parent().width();
 	//canvas[0].height = canvas.parent().height();

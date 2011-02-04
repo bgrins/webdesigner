@@ -31,7 +31,10 @@
 				<div class='filler'></div>
 				<div class='hbox'>
 					<div class='filler'></div>
-					<div id='content'><canvas id='c'></canvas></div>
+					<div id='content'>
+						<canvas id='c'></canvas>
+						<iframe id='mirror' src='javascript:void(0);' onload='frameLoaded(this)'></iframe>
+					</div>
 					<div class='filler'></div>
 				</div>
 				<div class='filler'></div>
@@ -42,15 +45,5 @@
 		<div id='ruler-x'><div><canvas></canvas></div></div>
 		<div id='ruler-y'><div><canvas></canvas></div></div>
 	</div>
-	<iframe id='mirror' src='javascript:void(0);' onload='frameLoaded(this)'></iframe>
-	
-	<script type='text/html' id='loadTemplate'>
-	<style>body{border:solid 5px;} p { font-size: 1.5em; border: solid 1px; }</style>
-		<div>
-		<strong data-debug="true">This <span>is some text.  It will eventually need to word wrap as it gets longerr</span> dasafdsadsf</strong>
-		
-		</div>
-		<p data-debug="true">What</p>
-	</script>
 </body> 
 </html> 

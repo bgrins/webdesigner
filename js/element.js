@@ -22,20 +22,23 @@ function error(msg) {
 // Convert: <div>Hi <strong>there.</strong> <!-- some comment --></div>
 // Into: <div><span>Hi </span><strong>there.</strong></div>
 $.fn.wrapSiblingTextNodes = function(wrapper) {
-	this.contents().each(function() {
-		if (this.nodeType == 3) {
-			if ($.trim(this.data) == "") { $(this).remove(); }
-			if ($(this.parentNode).children().length) {
-				$(this).wrap(wrapper);
-			}
-		}
-		else if (this.nodeType != 1) {
-			$(this).remove();
-		}
+	return this.each(function() {
+	
+		var element = $(this);
+		var children = element.children();
+		element.contents().each(function() {
+		    if (this.nodeType == 3) {
+		    	if ($.trim(this.data) == "") { $(this).remove(); }
+		    	if (children.length) {
+		    		$(this).wrap(wrapper);
+		    	}
+		    }
+		    else if (this.nodeType != 1) {
+		    	$(this).remove();
+		    }
+		});
+		
 	});
-};
-$.fn.trimMultiple = function(str) {
-
 };
 
 element.LOGLEVELS = {RELEASE: 0, NORMAL: 1, VERBOSE: 2};
@@ -73,6 +76,8 @@ function htmlToCanvas(body, canvas, width) {
 	
 	canvas.width = el.css.outerWidthMargins;
 	canvas.height = el.css.outerHeightMargins;
+	
+	el._canvas = canvas;	
 	el.precalculateCanvas();
 	el.renderToCanvas(canvas);
 }
@@ -90,6 +95,16 @@ function element(DOMElement) {
 	this.elID = element.elID++;
 	this._domElement = DOMElement;
 	this.jq = $(this._domElement);
+	this.body = DOMElement.ownerDocument.body._element;
+	
+	var that = this;
+	this.jq.bind("mouseover", function() {
+		var s = new Date().getTime();
+		that.jq.attr("data-debug", "true");
+		that.body._canvas.width = that.body._canvas.width;
+		that.renderToCanvas(that.body._canvas)
+		log("Took", (new Date().getTime() - s));
+	}).bind("mouseout", function() {that.jq.removeAttr("data-debug"); });
 	
 	this.parent = this._domElement.parentNode._element;
 	if (this.parent) {
@@ -124,7 +139,6 @@ element.prototype.copyDOM = function() {
 	}
 		
 	var el = this.jq;
-	this.drawDebugging = !!el.attr("data-debug");
 	
 	this.css = { };
 	for (var i = 0; i < element.styleAttributes.length; i++) {
@@ -255,7 +269,7 @@ element.prototype.renderToCanvas = function(canvas) {
 	log2("Rendering", this.tagName, this.text, x, y, w, h);
 	
 	// Draw a bounding box to show where the DOM Element lies
-	if (element.drawBoundingBox || this.drawDebugging) {
+	if (this.jq.attr("data-debug") || this.drawDebugging) {
 		ctx.strokeStyle = "#d66";
 		ctx.lineWidth = 1;
 		ctx.strokeRect(x, y, w, h);
@@ -342,13 +356,18 @@ element.prototype.precalculateCanvas = function() {
 		    // Push down to next line of printing
 		   // error(this.css.lineHeight + " " +  this.css.fontSize + " " + this.css.textBaselinePx);
 		    
-		    startY = startY + this.css.textBaselinePx; // ((this.css.lineHeight - this.css.fontSize) / 2);
+		    startY = startY + this.css.textBaselinePx;
 		    
 		    if (lines[j] != ' ') { 
-		    
-		    if (startY > minimumTextY) {
-		    	error("Text parsing: '" + lines[j] + "' is too low (" + startY + ", " + this.css.innerHeight + ", " + minimumTextY + ")");
-		    }
+		    	
+		    	if (startY > minimumTextY) {
+		    		startY = minimumTextY;
+		    		log("ERROR", lines[j], startY, minimumTextY, lines, this.css.outerHeightMargins,
+		    			this.css.textBaselinePx, this.css.fontSize, this.css.lineHeight, this.css.innerOffset);
+		    		
+		    		//error("Text parsing: '" + lines[j] + "' is too low (" + startY + ", " + minimumTextY + ")");
+		    	}
+		    	
 		    	ctx.fillText(lines[j], startX, startY);
 		    }
 		    

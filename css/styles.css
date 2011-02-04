@@ -10,7 +10,7 @@ a.active, a.active:hover { cursor: default; color:orange; }
 
 #scroller {overflow:scroll; background:grey; }
 #scroller .filler {  }
-#content { /*height:300px; width:600px;*/ background-color:white; }
+#content { /*height:300px; width:600px;*/ background-color:white; position:relative; }
 #header { height:50px; }
 #sidebar { width:50px; }
 
@@ -21,4 +21,5 @@ a.active, a.active:hover { cursor: default; color:orange; }
 #ruler-x div { height:16px; }
 #ruler-y div { width:16px; }
 
-#mirror { position:absolute; left: -10000px; top: -10000px; }
+#mirror, #c { position:absolute; left: 0; top:0; }
+#mirror { z-index: 2; opacity:.1;}
