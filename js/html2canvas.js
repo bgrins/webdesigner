@@ -3,25 +3,54 @@ html2canvas.js
 Render HTML to a canvas relying on the browser's layout engine
 */
 
+/*
+TODO:
+  * Background Properties
+  * Images
+  * Deal with zoom on load
+  * Check firefox 
+*/
 
 (function() {
 
 window.html2canvas = html2canvas;
 html2canvas.element = element;
+html2canvas.logLevels = { RELEASE: 0, NORMAL: 1, VERBOSE: 2 };
 var settings = html2canvas.settings = {
-	drawBoundingBox: false
+	drawBoundingBox: false,
+	logLevel: html2canvas.logLevels.RELEASE
 };
 
 function log() { if (window.console) { console.log(Array.prototype.slice.apply(arguments)); } }
-function log1() { if (element.logLevel >= 1) { log.apply(this, arguments); } }
-function log2() { if (element.logLevel >= 2) { log.apply(this, arguments); } }
+function log1() { if (settings.logLevel >= 1) { log.apply(this, arguments); } }
+function log2() { if (settings.logLevel >= 2) { log.apply(this, arguments); } }
 function error(msg) { throw "[Web Designer] " + msg; return false; }
+function shouldProcess(dom) { return (dom.nodeType == 1) && (!ignoreTags[dom.tagName.toLowerCase()]); }
+
+var getUniqueID = (function(id) { return function() { return id++; } })(0);
+var ignoreTags = { 'style':1, 'br': 1, 'script': 1, 'link': 1 };
+var styleAttributes = [
+	'border-top-style', 'border-top-color',
+	'border-right-style', 'border-right-color',
+	'border-bottom-style', 'border-bottom-color',
+	'border-left-style', 'border-left-color',
+	'display', 'text-decoration',
+	'font-family', 'font-style', 'font-weight', 'color',
+	'position', 'float', 'clear', 'overflow'
+];
+var styleAttributesPx = [
+	'padding-top','padding-right','padding-bottom','padding-left',
+	'margin-top','margin-right','margin-bottom','margin-left',
+	'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
+	'top', 'bottom', 'left', 'right', 
+	'line-height', 'font-size'
+];
+
 
 // Convert: <div>Hi <strong>there.</strong> <!-- some comment --></div>
 // Into: <div><span>Hi </span><strong>there.</strong></div>
 $.fn.wrapSiblingTextNodes = function(wrapper) {
 	return this.each(function() {
-	
 		var element = $(this);
 		var children = element.children();
 		element.contents().each(function() {
@@ -39,36 +68,11 @@ $.fn.wrapSiblingTextNodes = function(wrapper) {
 	});
 };
 
-element.LOGLEVELS = {RELEASE: 0, NORMAL: 1, VERBOSE: 2};
-element.logLevel = element.LOGLEVELS.RELEASE;
-
-element.elID = 0;
-element.ignoreTags = { 'style':1, 'br': 1, 'script': 1, 'link': 1 };
-element.styleAttributes = [
-'border-top-style', 'border-top-color',
-'border-right-style', 'border-right-color',
-'border-bottom-style', 'border-bottom-color',
-'border-left-style', 'border-left-color',
-'display', 'text-decoration',
-'font-family', 'font-style', 'font-weight', 'color',
-'position', 'float', 'clear', 'overflow'
-];
-element.styleAttributesPx = [
-'padding-top','padding-right','padding-bottom','padding-left',
-'margin-top','margin-right','margin-bottom','margin-left',
-'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
-'top', 'bottom', 'left', 'right', 
-'line-height', 'font-size'
-];
-
-element.shouldProcess = function(dom) {
-	return (dom.nodeType == 1) && (!element.ignoreTags[dom.tagName]);
-};
-
 function html2canvas(body, canvas, width) {
 	if (width) {
 		$(body).width(width);
 	}
+	
 	var el = new element(body);
 	
 	canvas.width = el.css.outerWidthMargins;
@@ -83,17 +87,25 @@ function element(DOMElement) {
 
 	log1("initializing element", DOMElement, DOMElement.nodeType);
 	
-	if (!element.shouldProcess(DOMElement)) {
-		return error("Invalid element passed for processing");
+	if (!shouldProcess(DOMElement)) {
+		return error("Invalid element passed for processing " + DOMElement.tagName);
 	}
 	
 	DOMElement._element = this;
-	
-	this.elID = element.elID++;
+	this.uniqueID = getUniqueID();
 	this._domElement = DOMElement;
 	this.jq = $(this._domElement);
 	this.body = DOMElement.ownerDocument.body._element;
+	this.nodeType = this._domElement.nodeType;
+	this.tagName = this._domElement.tagName.toLowerCase();
+	this.parent = this._domElement.parentNode._element;
+	if (this.parent) {
+		this.closestBlock = (this.parent.isBlock) ? this.parent : this.parent.closestBlock;
+	}
+	this.jq.wrapSiblingTextNodes("<span></span>");
+	this.copyDOM();
 	
+	/*
 	var that = this;
 	this.jq.bind("mouseover", function() {
 		var s = new Date().getTime();
@@ -102,48 +114,31 @@ function element(DOMElement) {
 		that.renderToCanvas(that.body._canvas)
 		log("Took", (new Date().getTime() - s));
 	}).bind("mouseout", function() {that.jq.removeAttr("data-debug"); });
+	*/
 	
-	this.parent = this._domElement.parentNode._element;
-	if (this.parent) {
-		this.closestBlock = (this.parent.isBlock) ? this.parent : this.parent.closestBlock;
-	}
-	
-	this.jq.wrapSiblingTextNodes("<span></span>");
-	this.copyDOM();
-	
-	
+	// Recursively instantiate all childNodes, filtering out non element nodes
 	this.childNodes = this._domElement.childNodes;
 	this.childElements = [];
 	for (var i = 0; i < this.childNodes.length; i++) {
 		var child = this.childNodes[i];
-		if (element.shouldProcess(child)) {
+		if (shouldProcess(child)) {
 	   		this.childElements.push(new element(child));
 	   	}
 	}
-	
 }
 
 
 element.prototype.copyDOM = function() {
-
-	this.nodeType = this._domElement.nodeType;
-	if (this.nodeType == 3) { return error("Parse Error: Encountered Text Node"); }
-	
-	this.tagName = this._domElement.tagName.toLowerCase();
-	
-	if (element.ignoreTags[this.tagName]) { 
-		return; 
-	}
 		
 	var el = this.jq;
 	
 	this.css = { };
-	for (var i = 0; i < element.styleAttributes.length; i++) {
-		var attr = element.styleAttributes[i];
+	for (var i = 0; i < styleAttributes.length; i++) {
+		var attr = styleAttributes[i];
 		this.css[$.camelCase(attr)] = el.css(attr);
 	}
-	for (var i = 0; i < element.styleAttributesPx.length; i++) {
-		var attr = element.styleAttributesPx[i];
+	for (var i = 0; i < styleAttributesPx.length; i++) {
+		var attr = styleAttributesPx[i];
 		this.css[$.camelCase(attr)] = parseInt(el.css(attr), 10) || 0;
 	}
 	
