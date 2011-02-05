@@ -404,13 +404,12 @@ element.prototype.renderBackground = function(ctx) {
 element.prototype.renderCanvas = function() {
 
 	if (!this.shouldRender) { return; }
+	log2("RENDERING CANVAS", this.tagName, this.height, this.width);
 	
 	var canvas = this.canvas = document.createElement("canvas");
 	canvas.width = this.width;
 	canvas.height = this.height;
 	var ctx = canvas.getContext("2d");
-	
-	log2("Precalculate Canvas", this.tagName, this.canvas.height, this.height, this.canvas.width, this.width);
 	
 	this.renderBorders(ctx);
 	this.renderBackground(ctx);
@@ -465,13 +464,13 @@ function wordWrap(ctx, phrase, maxWidth, initialOffset, isNewLine) {
 	    	}
 	    } 
 	    else {
-	    	// Normal case - 
+	    	// Normal case - just add this word to the current line
 	    	lastLine.push(word);
 	    }    
 	}
 	
 	if (lastLine.length) {	
-		log2("FOUND last", output, lastLine.join(' '));
+		// There was leftover words in the line (it didn't end on an end of line)
 		output.push(lastLine.join(' '));
 	}
 	
