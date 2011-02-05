@@ -22,4 +22,4 @@ a.active, a.active:hover { cursor: default; color:orange; }
 #ruler-y div { width:16px; }
 
 #mirror, #c { position:absolute; left: 0; top:0; }
-#mirror { z-index: 2; opacity:.1;}
+#mirror { z-index: 2; opacity:.3;}

@@ -3,7 +3,7 @@ function log() {
 		console.log(Array.prototype.slice.apply(arguments));
 	}
 }
-var blankSrc = "javascript:void(0);";
+var blankSrc = "about:blank";
 var data = [];
 
 html2canvas.settings.drawBoundingBox = true;
@@ -13,7 +13,6 @@ function frameLoaded(frame, ind) {
 	if (frame.src == blankSrc) {
 		body.html(data[ind]);
 	}
-	
 	$(frame).height(body[0].scrollHeight).width(body[0].scrollWidth);
 
 	var canvas = document.createElement("canvas");

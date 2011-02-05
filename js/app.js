@@ -1,29 +1,26 @@
 
+function log() { if (window.console) { console.log(Array.prototype.slice.apply(arguments)); } }
+
 var app = { };
 
 app.loadProject = function(src) {
 	$("#mirror").attr("src", $("#src").val());
 }
 
-function frameLoaded(frame) {
-
+app.frameLoaded = function(frame) {
+	if (frame.src == 'javascript:void(0);') { return; }
+	
 	var mirror = $(frame).contents();
 	var mirrorBody = mirror.find("body").attr("data-debug", "true");
 	
 	var h = mirrorBody[0].scrollHeight;
 	var w = mirrorBody[0].scrollWidth;
-	
-	$(frame).height(mirrorBody[0].scrollHeight).width(mirrorBody[0].scrollWidth);
 
-	//mirrorBody.html($("#loadTemplate").html());
+	// mirrorBody.html($("#loadTemplate").html());
 	var canvas = $("#c");
-	$("#content").height(mirrorBody[0].scrollHeight).width(mirrorBody[0].scrollWidth);
-	
-	//canvas[0].width = canvas.parent().width();
-	//canvas[0].height = canvas.parent().height();
+	$(frame).height(h).width(w);
+	$("#content").height(h).width(w);
 	html2canvas(mirrorBody[0], canvas[0]);
-	
-	
 }
 
 $(function() {

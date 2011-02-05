@@ -11,7 +11,7 @@ h2 { border-bottom: dashed 2px #eee; border-top: dashed 2px #eee; }
 .result { margin: 20px 3px; }
 #testTemplate { display:none; }
 </style>
-<script type='text/javascript' src='js/jquery-1.4.4.js'></script>
+<script type='text/javascript' src='js/jquery-1.5.js'></script>
 <script type='text/javascript' src='js/html2canvas.js'></script>
 <script type='text/javascript' src='js/test.js'></script>
 </head>
@@ -53,11 +53,13 @@ h2 { border-bottom: dashed 2px #eee; border-top: dashed 2px #eee; }
 		strong{ font-size: 2em; font-weight:bold; } 
 		p.test { border: solid 5px; margin-left:10px; padding-left:10px; line-height:4.3;} 
 		.left { float:left; padding-left:50px; }
+		#green { background-color:green; margin:10px; padding:10px; border: solid 2px; }
 	</style>
-	<div style="background-color:green;">
+	<div id="green">
 	text node <br /> and break <div>ok</div> 
 	what next <strong data-debug="true">stronf dsalsdfjlksdaf ljfsd  lkfsdsdfka fsdksdfajsf kfsdjfdskjfsadfaksdfjdkg</strong> <span>asdf adsdsa</span>
-	<p class='test'>Left alon</p>
+	<p class='test'>Huge line height</p>
+	<p class='test'>Huge line height with <br />Multiple lines</p>
 </script>
 
 <script type='text/html' data-description='Test Invalid Nodes'>

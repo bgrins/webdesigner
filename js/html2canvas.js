@@ -26,6 +26,15 @@ function log1() { if (settings.logLevel >= 1) { log.apply(this, arguments); } }
 function log2() { if (settings.logLevel >= 2) { log.apply(this, arguments); } }
 function error(msg) { throw "[Web Designer] " + msg; return false; }
 function shouldProcess(dom) { return (dom.nodeType == 1) && (!ignoreTags[dom.tagName.toLowerCase()]); }
+function computedStyle(elem, styles) {
+	var defaultView = elem.ownerDocument.defaultView;
+	var computedStyle = defaultView.getComputedStyle( elem, null );
+	var ret = { };
+	for (var i = 0; i < styles.length; i++) {
+		ret[styles[i]] = computedStyle.getPropertyValue( styles[i] );
+	}
+	return ret;
+}
 
 var getUniqueID = (function(id) { return function() { return id++; } })(0);
 var ignoreTags = { 'style':1, 'br': 1, 'script': 1, 'link': 1 };
@@ -36,7 +45,8 @@ var styleAttributes = [
 	'border-left-style', 'border-left-color',
 	'display', 'text-decoration',
 	'font-family', 'font-style', 'font-weight', 'color',
-	'position', 'float', 'clear', 'overflow'
+	'position', 'float', 'clear', 'overflow',
+	'background-color', 'background-image', 'background-repeat', 'background-position' 
 ];
 var styleAttributesPx = [
 	'padding-top','padding-right','padding-bottom','padding-left',
@@ -133,6 +143,16 @@ element.prototype.copyDOM = function() {
 	var el = this.jq;
 	
 	this.css = { };
+	
+	var computedStyleNormal = computedStyle(el[0], styleAttributes);
+	var computedStylePx = computedStyle(el[0], styleAttributesPx);
+	for (var i in computedStyleNormal) {
+		this.css[$.camelCase(i)] = computedStyleNormal[i];
+	}
+	for (var i in computedStylePx) {
+		this.css[$.camelCase(i)] = parseInt(computedStylePx[i]) || 0;
+	}
+	/* May want to use jQuery CSS (it is a little slower, but MAY give better results?
 	for (var i = 0; i < styleAttributes.length; i++) {
 		var attr = styleAttributes[i];
 		this.css[$.camelCase(attr)] = el.css(attr);
@@ -141,6 +161,7 @@ element.prototype.copyDOM = function() {
 		var attr = styleAttributesPx[i];
 		this.css[$.camelCase(attr)] = parseInt(el.css(attr), 10) || 0;
 	}
+	*/
 	
 	this.offset = el.offset();
 	this.position = el.position();
@@ -174,8 +195,8 @@ element.prototype.copyDOM = function() {
 		this.isOverflowing = this.overflowHiddenWidth != this.width;
 	}
 	
-	this.hasOnlyTextNodes = true;
 	var childNodes = this._domElement.childNodes;
+	this.hasOnlyTextNodes = (childNodes.length > 0); // img, hr, etc shouldn't show up as text nodes
 	for (var i = 0; i < childNodes.length; i++) {
 		if (childNodes[i].nodeType != 3) { this.hasOnlyTextNodes = false; }
 	}
@@ -226,6 +247,7 @@ element.prototype.copyDOM = function() {
 	this.shouldRender = (this.css.outerWidthMargins > 0 && this.css.outerHeightMargins > 0);
 	
 	
+	if (this.tagName == "img") { log("FOUND IMG", this, this.shouldRender);} 
 	if (this.hasOnlyTextNodes) {
 		// Todo: get a better measurement of line height, actually breaking the text up into lines
 		var oldHtml = el.html();
@@ -245,13 +267,12 @@ element.prototype.copyDOM = function() {
 			top: textStart.top - this.position.top,
 			left: textStart.left - this.position.left
 		};
-		this.css.textBaselinePx = (this.css.lineHeight) - ((this.css.lineHeight - this.css.fontSize) / 2);
 		
+		this.css.textBaselinePx = (this.css.lineHeight) - ((this.css.lineHeight - this.css.fontSize) / 2);
 	}
 };
 
 element.prototype.renderToCanvas = function(canvas) {
-	
 	if (!this.shouldRender) { return; }
 	
 	var ctx = canvas.getContext("2d"),
@@ -297,6 +318,11 @@ element.prototype.precalculateCanvas = function() {
 	var offsetLeft = this.css.marginLeft;
 	var offsetTop = this.css.marginTop;
 	
+	if (this.css.backgroundColor) {
+		ctx.fillStyle = this.css.backgroundColor;
+		ctx.fillRect(offsetLeft, offsetTop, this.css.outerWidth, this.css.outerHeight);
+	}
+	
 	var borderLeftWidth = this.css.borderLeftWidth;
 	if (borderLeftWidth) {		
 		ctx.fillStyle = this.css.borderLeftColor;
@@ -329,7 +355,7 @@ element.prototype.precalculateCanvas = function() {
 		ctx.textBaseline = "bottom";
 		
 		var startX = this.css.innerOffset.left;
-		var startY = this.css.innerOffset.top;
+		var startY = this.css.innerOffset.top + this.css.textBaselinePx;
 		var minimumTextY = this.css.outerHeightMargins - this.css.marginBottom - this.css.borderBottomWidth;
 		
 		if (this.textStartsOnDifferentLine) {
@@ -339,7 +365,7 @@ element.prototype.precalculateCanvas = function() {
 		var lines = wordWrap(ctx, this.text, this.overflowHiddenWidth, 
 			startX, !this.textStartsOnDifferentLine);
 	
-		log2("Recieved lines", lines, startX, this.overflowHiddenWidth, this.css.outerWidthMargins);
+		log2("Recieved lines", lines, startX, this.css.lineHeight, this.overflowHiddenWidth, this.css.outerWidthMargins);
 		
 		for (var j = 0; j < lines.length; j++) {
 		
@@ -348,7 +374,6 @@ element.prototype.precalculateCanvas = function() {
 		    // Push down to next line of printing
 		   // error(this.css.lineHeight + " " +  this.css.fontSize + " " + this.css.textBaselinePx);
 		    
-		    startY = startY + this.css.textBaselinePx;
 		    
 		    if (lines[j] != ' ') { 
 		    	
@@ -356,11 +381,11 @@ element.prototype.precalculateCanvas = function() {
 		    		startY = minimumTextY;
 		    		log("ERROR", lines[j], startY, minimumTextY, lines, this.css.outerHeightMargins,
 		    			this.css.textBaselinePx, this.css.fontSize, this.css.lineHeight, this.css.innerOffset);
-		    		
 		    		//error("Text parsing: '" + lines[j] + "' is too low (" + startY + ", " + minimumTextY + ")");
 		    	}
 		    	
 		    	ctx.fillText(lines[j], startX, startY);
+		    	startY = startY + this.css.lineHeight;
 		    }
 		    
 		    // reset in case this started at a different place (textStartsOnDifferentLine)
