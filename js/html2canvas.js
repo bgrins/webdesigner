@@ -89,8 +89,8 @@ function html2canvas(body, canvas, width) {
 	canvas.height = el.css.outerHeightMargins;
 	
 	el._canvas = canvas;	
-	el.precalculateCanvas();
-	el.renderToCanvas(canvas);
+	el.renderCanvas();
+	el.copyToCanvas(canvas);
 }
 
 function element(DOMElement) {
@@ -121,7 +121,7 @@ function element(DOMElement) {
 		var s = new Date().getTime();
 		that.jq.attr("data-debug", "true");
 		that.body._canvas.width = that.body._canvas.width;
-		that.renderToCanvas(that.body._canvas)
+		that.copyToCanvas(that.body._canvas)
 		log("Took", (new Date().getTime() - s));
 	}).bind("mouseout", function() {that.jq.removeAttr("data-debug"); });
 	*/
@@ -165,8 +165,8 @@ element.prototype.copyDOM = function() {
 	
 	this.offset = el.offset();
 	this.position = el.position();
-	this.height = el.height();
-	this.width = this.overflowHiddenWidth = el.width();
+	this.elementHeight = el.height();
+	this.elementWidth = this.overflowHiddenWidth = el.width();
 	
 	// Offset needs to be computed with the margin to show where to start the bounding box of element
 	// Offset does not take body's border into account http://bugs.jquery.com/ticket/7948
@@ -205,7 +205,7 @@ element.prototype.copyDOM = function() {
 	this.css.font = $.trim(this.css.fontStyle + " " + this.css.fontWeight + " "  + this.css.fontSize + "px " + this.css.fontFamily);
 	
 	this.css.outerHeight = 
-		this.height + 
+		this.elementHeight + 
 		this.css.paddingTop +
 		this.css.paddingBottom +
 		this.css.borderTopWidth +
@@ -217,7 +217,7 @@ element.prototype.copyDOM = function() {
 		this.css.marginBottom;
 		
 	this.css.outerWidth = 
-		this.width + 
+		this.elementWidth + 
 		this.css.paddingLeft +
 		this.css.paddingRight +
 		this.css.borderLeftWidth + 
@@ -235,17 +235,20 @@ element.prototype.copyDOM = function() {
 	};
 	
 	this.css.innerHeight = 
-		this.height + 
+		this.elementHeight + 
 		this.css.paddingBottom + 
 		this.css.paddingTop;
 		
 	this.css.innerWidth = 
-		this.width + 
+		this.elementWidth + 
 		this.css.paddingLeft + 
 		this.css.paddingRight;
 		
 	this.shouldRender = (this.css.outerWidthMargins > 0 && this.css.outerHeightMargins > 0);
-	
+	this.x = this.offsetRenderBox.left;
+	this.y = this.offsetRenderBox.top;
+	this.width = this.css.outerWidthMargins;
+	this.height = this.css.outerHeightMargins;
 	
 	if (this.tagName == "img") { log("FOUND IMG", this, this.shouldRender);} 
 	if (this.hasOnlyTextNodes) {
@@ -272,12 +275,12 @@ element.prototype.copyDOM = function() {
 	}
 };
 
-element.prototype.renderToCanvas = function(canvas) {
+element.prototype.copyToCanvas = function(canvas) {
 	if (!this.shouldRender) { return; }
 	
 	var ctx = canvas.getContext("2d"),
-		x = this.offsetRenderBox.left, y = this.offsetRenderBox.top,
-		w = this.css.outerWidthMargins, h = this.css.outerHeightMargins;
+		x = this.x, y = this.y,
+		w = this.width, h = this.height;
 	
 	log2("Rendering", this.tagName, this.text, x, y, w, h);
 	
@@ -297,59 +300,15 @@ element.prototype.renderToCanvas = function(canvas) {
 	for (var i = 0; i < this.childElements.length; i++) {
 		var el = this.childElements[i];
 		if (el.nodeType != 3) {
-			el.renderToCanvas(canvas);
+			el.copyToCanvas(canvas);
 		}
 	}
 };
 
-element.prototype.precalculateCanvas = function() {
-
-	if (!this.shouldRender) { return; }
-	
-	this.canvas = document.createElement("canvas");
-	this.canvas.width = this.css.outerWidthMargins;
-	this.canvas.height = this.css.outerHeightMargins;
-	
-	log2("Precalculate Canvas", this.tagName, this.canvas.height,  this.height, this.canvas.width, this.width);
-	
-	var canvas = this.canvas;
-	var ctx = canvas.getContext("2d");
-	
-	var offsetLeft = this.css.marginLeft;
-	var offsetTop = this.css.marginTop;
-	
-	if (this.css.backgroundColor) {
-		ctx.fillStyle = this.css.backgroundColor;
-		ctx.fillRect(offsetLeft, offsetTop, this.css.outerWidth, this.css.outerHeight);
-	}
-	
-	var borderLeftWidth = this.css.borderLeftWidth;
-	if (borderLeftWidth) {		
-		ctx.fillStyle = this.css.borderLeftColor;
-		ctx.fillRect(offsetLeft, offsetTop, borderLeftWidth, this.css.outerHeight);
-	}
-	var borderTopWidth = this.css.borderTopWidth;
-	if (borderTopWidth) {		
-		ctx.fillStyle = this.css.borderTopColor;
-		ctx.fillRect(offsetLeft, offsetTop, this.css.outerWidth, borderTopWidth);
-	}
-	var borderBottomWidth = this.css.borderBottomWidth;
-	if (borderBottomWidth) {		
-		ctx.fillStyle = this.css.borderBottomColor;
-		ctx.fillRect(offsetLeft, offsetTop + this.css.outerHeight - borderBottomWidth, this.css.outerWidth, borderBottomWidth);
-	}
-	var borderRightWidth = this.css.borderRightWidth;
-	if (borderRightWidth) {		
-		ctx.fillStyle = this.css.borderRightColor;
-		ctx.fillRect(
-			offsetLeft + this.css.outerWidth - borderRightWidth, 
-			offsetTop, borderRightWidth, this.css.outerHeight);
-	}
-	
+element.prototype.renderText = function(ctx) {
 	if (this.hasOnlyTextNodes) {
 		
 		// Time to print out some text, don't have to worry about any more elements changing styles
-		
   		ctx.font = this.css.font;
   		ctx.fillStyle = this.css.color;
 		ctx.textBaseline = "bottom";
@@ -392,12 +351,74 @@ element.prototype.precalculateCanvas = function() {
 		    startX = this.css.innerOffset.left;
 		}
 	}
-	else {
-		for (var i = 0; i < this.childElements.length; i++) {
-			this.childElements[i].precalculateCanvas();
-		}
+};
+
+element.prototype.renderBorders = function(ctx) {
+	
+	var offsetLeft = this.css.marginLeft;
+	var offsetTop = this.css.marginTop;
+
+	var borderLeftWidth = this.css.borderLeftWidth;
+	if (borderLeftWidth) {		
+		ctx.fillStyle = this.css.borderLeftColor;
+		ctx.fillRect(
+			offsetLeft, offsetTop, 
+			borderLeftWidth, this.css.outerHeight);
 	}
 	
+	var borderTopWidth = this.css.borderTopWidth;
+	if (borderTopWidth) {		
+		ctx.fillStyle = this.css.borderTopColor;
+		ctx.fillRect(
+			offsetLeft, offsetTop, 
+			this.css.outerWidth, borderTopWidth);
+	}
+	
+	var borderBottomWidth = this.css.borderBottomWidth;
+	if (borderBottomWidth) {		
+		ctx.fillStyle = this.css.borderBottomColor;
+		ctx.fillRect(
+			offsetLeft, offsetTop + this.css.outerHeight - borderBottomWidth, 
+			this.css.outerWidth, borderBottomWidth);
+	}
+	
+	var borderRightWidth = this.css.borderRightWidth;
+	if (borderRightWidth) {		
+		ctx.fillStyle = this.css.borderRightColor;
+		ctx.fillRect(
+			offsetLeft + this.css.outerWidth - borderRightWidth, 
+			offsetTop, borderRightWidth, this.css.outerHeight);
+	}
+};
+
+element.prototype.renderBackground = function(ctx) {
+
+	var offsetLeft = this.css.marginLeft;
+	var offsetTop = this.css.marginTop;
+	if (this.css.backgroundColor) {
+		ctx.fillStyle = this.css.backgroundColor;
+		ctx.fillRect(offsetLeft, offsetTop, this.css.outerWidth, this.css.outerHeight);
+	}
+};
+
+element.prototype.renderCanvas = function() {
+
+	if (!this.shouldRender) { return; }
+	
+	var canvas = this.canvas = document.createElement("canvas");
+	canvas.width = this.width;
+	canvas.height = this.height;
+	var ctx = canvas.getContext("2d");
+	
+	log2("Precalculate Canvas", this.tagName, this.canvas.height, this.height, this.canvas.width, this.width);
+	
+	this.renderBorders(ctx);
+	this.renderBackground(ctx);
+	this.renderText(ctx);
+	
+	for (var i = 0; i < this.childElements.length; i++) {
+	    this.childElements[i].renderCanvas();
+	}
 };
 
 function wordWrap(ctx, phrase, maxWidth, initialOffset, isNewLine) {
@@ -446,12 +467,8 @@ function wordWrap(ctx, phrase, maxWidth, initialOffset, isNewLine) {
 	    else {
 	    	// Normal case - 
 	    	lastLine.push(word);
-	    }
-	    	
-	    
-	    
+	    }    
 	}
-	
 	
 	if (lastLine.length) {	
 		log2("FOUND last", output, lastLine.join(' '));
