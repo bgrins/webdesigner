@@ -24,11 +24,9 @@ app.frameLoaded = function(frame) {
 	var bodyElement = html2canvas(mirrorBody[0], canvas[0]);
 	
 	bodyElement.traverseChildren(function(child) {
-		log("BINDING", child);
 		if (!child.isBlock) {return;}
 		child.jq.hover(
 		function() {
-			log("IN HERE", this);
 			$(this).attr("data-debug", true);
 			bodyElement.copyToCanvas(canvas[0]);
 		}, function() {

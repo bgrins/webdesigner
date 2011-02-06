@@ -1,0 +1,16 @@
+Add text editing: http://code.google.com/p/rangy/wiki/SelectionSaveRestoreModule
+Persist changes (using backbone with localstorage to keep things simple for now)
+Duplicate a file
+Group elements together (nesting based on DOM structure, class names, create your own groups)
+Have a workflow for showing different portions of comps (either to compare two different ideas)
+** Opaque overlay of one on another?
+Possibly assign actions directly to different comps (click on submit -> switch to PageSubmit)
+
+
+Image editing type things:
+* Nudging Elements
+* Eyedrop
+* Canvas based colorpicker?
+* Shapes?
+* Add form elements (radio buttons, checkboxes, submits)
+* CSS based editing (changes for a portion of text could be saved as a class)
