@@ -91,6 +91,8 @@ function html2canvas(body, canvas, width) {
 	el._canvas = canvas;	
 	el.renderCanvas();
 	el.copyToCanvas(canvas);
+	
+	return el;
 }
 
 function element(DOMElement) {
@@ -137,6 +139,12 @@ function element(DOMElement) {
 	}
 }
 
+element.prototype.traverseChildren = function(f) {
+	for (var i = 0, len = this.childElements.length; i < len; i++) {
+		f(this.childElements[i]);
+		//this.childElements[i].traverseChildren(f);
+	}
+};
 
 element.prototype.copyDOM = function() {
 		
@@ -195,13 +203,6 @@ element.prototype.copyDOM = function() {
 		this.isOverflowing = this.overflowHiddenWidth != this.width;
 	}
 	
-	var childNodes = this._domElement.childNodes;
-	this.hasOnlyTextNodes = (childNodes.length > 0); // img, hr, etc shouldn't show up as text nodes
-	for (var i = 0; i < childNodes.length; i++) {
-		if (childNodes[i].nodeType != 3) { this.hasOnlyTextNodes = false; }
-	}
-	
-	this.text = this.hasOnlyTextNodes ? el.text() : "";
 	this.css.font = $.trim(this.css.fontStyle + " " + this.css.fontWeight + " "  + this.css.fontSize + "px " + this.css.fontFamily);
 	
 	this.css.outerHeight = 
@@ -250,9 +251,19 @@ element.prototype.copyDOM = function() {
 	this.width = this.css.outerWidthMargins;
 	this.height = this.css.outerHeightMargins;
 	
-	if (this.tagName == "img") { log("FOUND IMG", this, this.shouldRender);} 
+	if (this.tagName == "img") { log("FOUND IMG", this, this.shouldRender, this.jq[0].loaded); } 
+	
+	
+	var childNodes = this._domElement.childNodes;
+	this.hasOnlyTextNodes = (childNodes.length > 0); // img, hr, etc shouldn't show up as text nodes
+	for (var i = 0; i < childNodes.length; i++) {
+		if (childNodes[i].nodeType != 3) { this.hasOnlyTextNodes = false; }
+	}
+	
 	if (this.hasOnlyTextNodes) {
-		// Todo: get a better measurement of line height, actually breaking the text up into lines
+	
+		this.text = el.text();
+	
 		var oldHtml = el.html();
 		var newHtml = "<span id='measure'>x</span>";
 		var measured = el.html(newHtml).find("#measure");
@@ -297,11 +308,29 @@ element.prototype.copyToCanvas = function(canvas) {
 		ctx.drawImage(this.canvas, x, y, w, h);
 	}
 	
-	for (var i = 0; i < this.childElements.length; i++) {
-		var el = this.childElements[i];
-		if (el.nodeType != 3) {
-			el.copyToCanvas(canvas);
-		}
+	
+	for (var i = 0, len = this.childElements.length; i < len; i++) {
+		this.childElements[i].copyToCanvas(canvas);
+	}
+};
+
+
+element.prototype.renderCanvas = function() {
+
+	if (!this.shouldRender) { return; }
+	log2("RENDERING CANVAS", this.tagName, this.height, this.width);
+	
+	var canvas = this.canvas = document.createElement("canvas");
+	canvas.width = this.width;
+	canvas.height = this.height;
+	var ctx = canvas.getContext("2d");
+	
+	this.renderBorders(ctx);
+	this.renderBackground(ctx);
+	this.renderText(ctx);
+	
+	for (var i = 0, len = this.childElements.length; i < len; i++) {
+		this.childElements[i].renderCanvas();
 	}
 };
 
@@ -401,24 +430,6 @@ element.prototype.renderBackground = function(ctx) {
 	}
 };
 
-element.prototype.renderCanvas = function() {
-
-	if (!this.shouldRender) { return; }
-	log2("RENDERING CANVAS", this.tagName, this.height, this.width);
-	
-	var canvas = this.canvas = document.createElement("canvas");
-	canvas.width = this.width;
-	canvas.height = this.height;
-	var ctx = canvas.getContext("2d");
-	
-	this.renderBorders(ctx);
-	this.renderBackground(ctx);
-	this.renderText(ctx);
-	
-	for (var i = 0; i < this.childElements.length; i++) {
-	    this.childElements[i].renderCanvas();
-	}
-};
 
 function wordWrap(ctx, phrase, maxWidth, initialOffset, isNewLine) {
 	var words = phrase.split(" ");
