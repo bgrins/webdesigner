@@ -116,18 +116,7 @@ function element(DOMElement) {
 	}
 	this.jq.wrapSiblingTextNodes("<span></span>");
 	this.copyDOM();
-	
-	/*
-	var that = this;
-	this.jq.bind("mouseover", function() {
-		var s = new Date().getTime();
-		that.jq.attr("data-debug", "true");
-		that.body._canvas.width = that.body._canvas.width;
-		that.copyToCanvas(that.body._canvas)
-		log("Took", (new Date().getTime() - s));
-	}).bind("mouseout", function() {that.jq.removeAttr("data-debug"); });
-	*/
-	
+
 	// Recursively instantiate all childNodes, filtering out non element nodes
 	this.childNodes = this._domElement.childNodes;
 	this.childElements = [];
@@ -142,7 +131,7 @@ function element(DOMElement) {
 element.prototype.traverseChildren = function(f) {
 	for (var i = 0, len = this.childElements.length; i < len; i++) {
 		f(this.childElements[i]);
-		//this.childElements[i].traverseChildren(f);
+		this.childElements[i].traverseChildren(f);
 	}
 };
 
@@ -421,7 +410,6 @@ element.prototype.renderBorders = function(ctx) {
 };
 
 element.prototype.renderBackground = function(ctx) {
-
 	var offsetLeft = this.css.marginLeft;
 	var offsetTop = this.css.marginTop;
 	if (this.css.backgroundColor) {

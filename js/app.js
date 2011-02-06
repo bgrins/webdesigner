@@ -20,7 +20,25 @@ app.frameLoaded = function(frame) {
 	var canvas = $("#c");
 	$(frame).height(h).width(w);
 	$("#content").height(h).width(w);
-	html2canvas(mirrorBody[0], canvas[0]);
+	
+	var bodyElement = html2canvas(mirrorBody[0], canvas[0]);
+	
+	bodyElement.traverseChildren(function(child) {
+		log("BINDING", child);
+		if (!child.isBlock) {return;}
+		child.jq.hover(
+		function() {
+			log("IN HERE", this);
+			$(this).attr("data-debug", true);
+			bodyElement.copyToCanvas(canvas[0]);
+		}, function() {
+			$(this).removeAttr("data-debug", true);
+			bodyElement.copyToCanvas(canvas[0]);
+		
+		});
+	});
+	
+	//initeasel(bodyElement, canvas[0]);
 }
 
 $(function() {
@@ -48,5 +66,3 @@ $(function() {
 		return false;
 	});
 });
-
-
