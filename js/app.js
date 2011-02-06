@@ -21,8 +21,11 @@ app.frameLoaded = function(frame) {
 	$(frame).height(h).width(w);
 	$("#content").height(h).width(w);
 	
+	setTimeout(function() {
+	
 	var bodyElement = html2canvas(mirrorBody[0], canvas[0]);
 	
+		
 	bodyElement.traverseChildren(function(child) {
 		if (!child.isBlock) {return;}
 		child.jq.hover(
@@ -35,6 +38,8 @@ app.frameLoaded = function(frame) {
 		
 		});
 	});
+	}, 1000);
+	
 	
 	//initeasel(bodyElement, canvas[0]);
 }

@@ -16,6 +16,7 @@ function frameLoaded(frame, ind) {
 	$(frame).height(body[0].scrollHeight).width(body[0].scrollWidth);
 
 	var canvas = document.createElement("canvas");
+	body[0].canvas = canvas;
 	html2canvas(body[0], canvas);
 	$(frame).closest(".result").find('.canvas').append(canvas);
 }

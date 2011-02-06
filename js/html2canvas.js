@@ -83,19 +83,18 @@ function html2canvas(body, canvas, width) {
 		$(body).width(width);
 	}
 	
-	var el = new element(body);
+	var el = new element(body, function() {
+		el._canvas = canvas;
+		canvas.width = el.css.outerWidthMargins;
+		canvas.height = el.css.outerHeightMargins;
+		el.copyToCanvas(canvas);
+	});
 	
-	canvas.width = el.css.outerWidthMargins;
-	canvas.height = el.css.outerHeightMargins;
-	
-	el._canvas = canvas;	
 	el.renderCanvas();
-	el.copyToCanvas(canvas);
-	
 	return el;
 }
 
-function element(DOMElement) {
+function element(DOMElement, onready) {
 
 	log1("initializing element", DOMElement, DOMElement.nodeType);
 	
@@ -107,13 +106,22 @@ function element(DOMElement) {
 	this.uniqueID = getUniqueID();
 	this._domElement = DOMElement;
 	this.jq = $(this._domElement);
-	this.body = DOMElement.ownerDocument.body._element;
 	this.nodeType = this._domElement.nodeType;
 	this.tagName = this._domElement.tagName.toLowerCase();
-	this.parent = this._domElement.parentNode._element;
-	if (this.parent) {
-		this.closestBlock = (this.parent.isBlock) ? this.parent : this.parent.closestBlock;
+	this.readyChildren = 0;
+	this.ready = false;
+	this.onready = onready || function() { };
+	this.body = DOMElement.ownerDocument.body._element;
+	if (this.tagName == "body") {
+		this.totalChildren = 0;
+		this.readyChilren = 0;
 	}
+	else {
+		this.parent = this._domElement.parentNode._element;
+		this.closestBlock = (this.parent.isBlock) ? this.parent : this.parent.closestBlock;
+		this.body.totalChildren++;
+	}
+	
 	this.jq.wrapSiblingTextNodes("<span></span>");
 	this.copyDOM();
 
@@ -127,6 +135,15 @@ function element(DOMElement) {
 	   	}
 	}
 }
+
+element.prototype.signalReady = function() {
+	if (this.tagName != "body") {
+		this.body.readyChildren++;
+		if (this.body.readyChildren == this.body.totalChildren) {
+			this.body.onready();
+		}
+	}
+};
 
 element.prototype.traverseChildren = function(f) {
 	for (var i = 0, len = this.childElements.length; i < len; i++) {
@@ -315,8 +332,11 @@ element.prototype.renderCanvas = function() {
 	var ctx = canvas.getContext("2d");
 	
 	this.renderBorders(ctx);
-	this.renderBackground(ctx);
-	this.renderText(ctx);
+	var that = this;
+	this.renderBackground(ctx, function() {
+		that.renderText(ctx);
+		that.signalReady();
+	});
 	
 	for (var i = 0, len = this.childElements.length; i < len; i++) {
 		this.childElements[i].renderCanvas();
@@ -409,15 +429,46 @@ element.prototype.renderBorders = function(ctx) {
 	}
 };
 
-element.prototype.renderBackground = function(ctx) {
+element.prototype.renderBackground = function(ctx, cb) {
 	var offsetLeft = this.css.marginLeft;
 	var offsetTop = this.css.marginTop;
+	
 	if (this.css.backgroundColor) {
 		ctx.fillStyle = this.css.backgroundColor;
 		ctx.fillRect(offsetLeft, offsetTop, this.css.outerWidth, this.css.outerHeight);
 	}
+	
+	if (this.css.backgroundImage != "none") {
+		var src = this.css.backgroundImage;
+		if (src.indexOf("data:") == -1) {
+			var url = new RegExp(/url\((.*)\)/);
+			src = url(this.css.backgroundImage)[1];
+			if (element.prototype.renderBackground.cache[src]) {
+				src = element.prototype.renderBackground.cache[src];
+			}
+		}
+		
+		var that = this;
+		
+		var imgCanvas = document.createElement("canvas");
+		var imgCtx = imgCanvas.getContext("2d");
+		var img = new Image();
+		img.onload = function() {
+			imgCanvas.width = img.width;
+			imgCanvas.height = img.height;
+			imgCtx.drawImage(img, 0, 0, img.width, img.height);
+			element.prototype.renderBackground.cache[src] = imgCanvas.toDataURL("image/png");
+			
+			ctx.drawImage(imgCanvas, 0, 0, imgCanvas.width, imgCanvas.height);
+			cb();
+		};
+		img.src = src;
+	}
+	else {
+		cb();
+	}
 };
-
+element.prototype.renderBackground.cache = { };
 
 function wordWrap(ctx, phrase, maxWidth, initialOffset, isNewLine) {
 	var words = phrase.split(" ");
