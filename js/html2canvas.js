@@ -187,9 +187,9 @@ element.prototype.copyDOM = function() {
 	// Offset needs to be computed with the margin to show where to start the bounding box of element
 	// Offset does not take body's border into account http://bugs.jquery.com/ticket/7948
 	var body = this._domElement.ownerDocument.body._element;
-	this.hasBeenAbsolute = this.css.position == "absolute" || (this.parent && this.parent.hasAbsoluteParent);
+	this.hasAbsoluteParent = this.parent && (this.parent.hasAbsoluteParent || this.parent.css.position == "absolute");
 	var includeBodyBordersInOffset = true;
-	if ($.browser.mozilla && !this.hasBeenAbsolute && this.css.position != "fixed") {
+	if ($.browser.mozilla && !this.hasAbsoluteParent && this.css.position != "fixed") {
 		includeBodyBordersInOffset = false;
 	}
 	var bodyBorderTopWidth = includeBodyBordersInOffset ? body.css.borderTopWidth : 0;
