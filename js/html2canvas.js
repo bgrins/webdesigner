@@ -28,10 +28,11 @@ function error(msg) { throw "[Web Designer] " + msg; return false; }
 function shouldProcess(dom) { return (dom.nodeType == 1) && (!ignoreTags[dom.tagName.toLowerCase()]); }
 function computedStyle(elem, styles) {
 	var defaultView = elem.ownerDocument.defaultView;
-	var computedStyle = defaultView.getComputedStyle( elem, null );
+	var computedStyle = defaultView.getComputedStyle( elem, true );
 	var ret = { };
 	for (var i = 0; i < styles.length; i++) {
 		ret[styles[i]] = computedStyle.getPropertyValue( styles[i] );
+		if (styles[i] == "font-weight") { log("weight", elem, computedStyle.getPropertyValue( styles[i] ));}
 	}
 	return ret;
 }
@@ -166,6 +167,7 @@ element.prototype.copyDOM = function() {
 	for (var i in computedStylePx) {
 		this.css[$.camelCase(i)] = parseInt(computedStylePx[i]) || 0;
 	}
+	
 	/* May want to use jQuery CSS (it is a little slower, but MAY give better results?
 	for (var i = 0; i < styleAttributes.length; i++) {
 		var attr = styleAttributes[i];
@@ -185,9 +187,17 @@ element.prototype.copyDOM = function() {
 	// Offset needs to be computed with the margin to show where to start the bounding box of element
 	// Offset does not take body's border into account http://bugs.jquery.com/ticket/7948
 	var body = this._domElement.ownerDocument.body._element;
+	this.hasBeenAbsolute = this.css.position == "absolute" || (this.parent && this.parent.hasAbsoluteParent);
+	var includeBodyBordersInOffset = true;
+	if ($.browser.mozilla && !this.hasBeenAbsolute && this.css.position != "fixed") {
+		includeBodyBordersInOffset = false;
+	}
+	var bodyBorderTopWidth = includeBodyBordersInOffset ? body.css.borderTopWidth : 0;
+	var bodyBorderLeftWidth = includeBodyBordersInOffset ? body.css.borderLeftWidth : 0;
+	
 	this.offsetRenderBox = { 
-		top:  Math.max(0, this.offset.top - this.css.marginTop + body.css.borderTopWidth), 
-		left: Math.max(0, this.offset.left - this.css.marginLeft + body.css.borderLeftWidth)
+		top:  Math.floor(Math.max(0, this.offset.top - this.css.marginTop + bodyBorderTopWidth)), 
+		left: Math.floor(Math.max(0, this.offset.left - this.css.marginLeft + bodyBorderLeftWidth))
 	};
 	
 	this.isBlock = this.css.display == "block" || this.tagName == "body";
@@ -207,6 +217,11 @@ element.prototype.copyDOM = function() {
 	if (this.closestBlock && (this.closestBlock.width < this.width)) {
 		this.overflowHiddenWidth = this.closestBlock.width;
 		this.isOverflowing = this.overflowHiddenWidth != this.width;
+	}
+	
+	// For some reason, <strong> elements in FF report a font-weight of 401 even though they are bold
+	if ($.browser.mozilla && parseInt(this.css.fontWeight, 10) == 401) {
+		this.css.fontWeight = "bold";
 	}
 	
 	this.css.font = $.trim(this.css.fontStyle + " " + this.css.fontWeight + " "  + this.css.fontSize + "px " + this.css.fontFamily);

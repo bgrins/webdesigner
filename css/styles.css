@@ -11,16 +11,23 @@ a.active, a.active:hover { cursor: default; color:orange; }
 #scroller {overflow:scroll; background:grey; }
 #scroller .filler {  }
 #content { /*height:300px; width:600px;*/ background-color:white; position:relative; }
+
 #header { height:50px; }
-#sidebar { width:50px; }
+#sidebar { width:100px; }
+
+.props { width:70px; margin-left:5px; border: solid 1px; }
+.props .header { border: solid 1px; margin:3px; }
+#current-props {}
+#global-props {}
+#options { width:50px; height:300px; outline: solid 2px red; background-color:green; position:absolute;}
 
 #rulers { position:absolute; top:0; left: 0; z-index:10;}
 #ruler-x, #ruler-y { position:absolute; overflow:hidden; background:#ddd;}
-#ruler-x { top: 34px; left: 50px; }
-#ruler-y { top: 50px; left: 34px; bottom: 16px; }
+#ruler-x { top: 34px; left: 100px; }
+#ruler-y { top: 50px; left: 84px; bottom: 16px; }
 #ruler-x div { height:16px; }
 #ruler-y div { width:16px; }
 
 #mirror, #c {  position:absolute; left: 0; top:0; }
 #c { }
-#mirror {z-index: 2; opacity:.3;}
+#mirror {z-index: 2; opacity:.8;}
