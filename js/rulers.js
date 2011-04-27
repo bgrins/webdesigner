@@ -172,7 +172,7 @@ app.rulers.draw = function(zoom) {
     
 };
 
-})(app);
+})(OldApp);
 
 
 

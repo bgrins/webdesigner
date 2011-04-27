@@ -1,4 +1,6 @@
 
+var OldApp = { };
+
 $(function() {
 
 window.Page = Backbone.Model.extend({
@@ -195,6 +197,8 @@ window.AppView = Backbone.View.extend({
   	
     tabs.click(function() {
     	$(document.body).removeClass(classes).addClass($(this).attr("href").split('#')[1]);
+    	
+    	OldApp.rulers.draw();
     	document.body.scrollTop = 0;
     }).eq(0).click();
 
