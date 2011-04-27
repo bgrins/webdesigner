@@ -140,6 +140,7 @@ window.PageView = Backbone.View.extend({
 });
 
 
+
 // The Application
 // ---------------
 
@@ -165,11 +166,20 @@ window.AppView = Backbone.View.extend({
 
     this.input    = this.$("#new-todo");
     
-    var classes = $("#tabs a").map(function() { return $(this).data("tab"); }).toArray().join(' ');
     
-    log(classes);
-    $("#tabs a").click(function() {
-    	$(document.body).removeClass(classes).addClass($(this).data("tab"))
+    // Bind hash change for tabs
+    var tabs = $("#tabs a");
+    var classes = tabs.map(function() { return $(this).data("tab"); }).toArray().join(' ');
+    
+	$(window).bind("hashchange", function() {
+		var hash = window.location.hash;
+		if (classes.indexOf(hash.split('#')[1]) != -1) {
+			tabs.filter("[href='" + hash + "']").click();
+		}
+	});
+	
+    tabs.click(function() {
+    	$(document.body).removeClass(classes).addClass($(this).attr("href").split('#')[1])
     }).eq(0).click();
 
     Pages.bind('add',     this.addOne);

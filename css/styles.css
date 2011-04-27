@@ -7,8 +7,8 @@ body { overflow:hidden; }
 .filler {box-flex: 1; -moz-box-flex: 1; -webkit-box-flex: 1;  } 
 
 .hide, .ui-tabs-hide, .tab { display:none; }
-body.app-pages #app-pages, body.app-edit #app-edit { display: inherit; }
-body.app-edit #rulers { display:block; }
+body.tab-pages #tab-pages, body.tab-edit #tab-edit { display: inherit; }
+body.tab-edit #rulers { display:block; }
 a.active, a.active:hover { cursor: default; color:orange; }
 
 
