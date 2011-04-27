@@ -1,8 +1,5 @@
 
 
-
-function log() { if (window.console) { console.log(Array.prototype.slice.apply(arguments)); } }
-
 var app = { };
 
 app.editorStyles = "<style>" +
