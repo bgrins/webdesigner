@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>Backbone Demo: Todos</title>
+	<link rel="stylesheet" href="css/blueprint.css" />
+	<link rel="stylesheet" href="css/styles.css" />
+	<script type='text/javascript' src='js/jquery-1.5.2.js'></script>
+	<script type='text/javascript' src='js/jquery-ui-1.8.12.js'></script>
+	<script type='text/javascript' src='js/backbone.js'></script>
+	<script type='text/javascript' src='js/util.js'></script>
+	<script type='text/javascript' src='js/app2.js'></script>
+  </head>
+
+<body> 
+	<div id='all' class='vbox'>
+		<div id='header'>
+			<div id='header-content' class='clearfix'>
+				<div id='title' class='span-8'>
+					<h2>My Project - My Page</h2>
+				</div>
+				<div class='span-5'>
+				
+					<ul id='tabs'>
+						<li><a data-tab='app-pages' href="#app-pages">Pages</a></li>
+						<li><a data-tab='app-edit' href="#app-edit">States</a></li>
+					</ul>
+				</div>
+			<!--
+			
+			<a href='#600'>600</a>
+			<a href='#700'>700</a>
+			<a href='#800'>800</a>
+			<a href='#900'>900</a>
+			<a href='#960'>960</a>
+			<a href='#full' class='active'>full</a>
+			<a href='#1280'>1280</a>
+			<input type='text' id='src' value='load/blueprint/' />
+			-->
+			</div>
+		</div>
+		<div id='app-pages' class='tab'>
+			Some content for pagesssss
+		</div>
+		<div id='app-edit' class='hbox filler tab'>
+			<div id='sidebar'>
+				<div id='current-props' class='props'>
+					<div class='header'>Current</div>
+					<div class='prop-values'></div>
+				</div>
+				<div id='global-props' class='props'>
+					<div class='header'>Global</div>
+				
+				</div>
+			</div>
+			<div id='scroller' class='vbox filler'>
+				<div class='filler'></div>
+				<div class='hbox'>
+					<div class='filler'></div>
+					<div id='content'>
+						<!--<canvas id='c'></canvas>
+						<iframe id='mirror' src='javascript:void(0);' onload='app.frameLoaded(this)'></iframe>-->
+						
+						
+						
+<div id="todoapp">
+
+  <div class="title">
+    <h1>Todos</h1>
+  </div>
+
+  <div class="content">
+
+    <div id="create-todo">
+      <input id="new-todo" placeholder="What needs to be done?" type="text" />
+      <span class="ui-tooltip-top" style="display:none;">Press Enter to save this task</span>
+    </div>
+
+    <div id="todos">
+      <ul id="todo-list"></ul>
+    </div>
+
+    <div id="todo-stats"></div>
+
+  </div>
+
+</div>
+    
+    
+					</div>
+					<div class='filler'></div>
+				</div>
+				<div class='filler'></div>
+			</div>
+		</div>
+	</div>
+	<div id='rulers'>
+		<div id='ruler-x'><div><canvas></canvas></div></div>
+		<div id='ruler-y'><div><canvas></canvas></div></div>
+	</div>
+	
+	
+	
+	
+    <script type="text/template" id="item-template">
+      <div class="todo <%= done ? 'done' : '' %>">
+        <div class="display">
+          <input class="check" type="checkbox" <%= done ? 'checked="checked"' : '' %> />
+          <div class="todo-content"></div>
+          <span class="todo-destroy"></span>
+        </div>
+        <div class="edit">
+          <input class="todo-input" type="text" value="" />
+        </div>
+      </div>
+    </script>
+
+    <script type="text/template" id="stats-template">
+      <% if (total) { %>
+        <span class="todo-count">
+          <span class="number"><%= remaining %></span>
+          <span class="word"><%= remaining == 1 ? 'item' : 'items' %></span> left.
+        </span>
+      <% } %>
+      <% if (done) { %>
+        <span class="todo-clear">
+          <a href="#">
+            Clear <span class="number-done"><%= done %></span>
+            completed <span class="word-done"><%= done == 1 ? 'item' : 'items' %></span>
+          </a>
+        </span>
+      <% } %>
+    </script>
+    
+</body> 
+</html>

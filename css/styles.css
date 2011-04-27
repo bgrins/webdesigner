@@ -6,13 +6,40 @@ body { overflow:hidden; }
 .hbox { -webkit-box-orient: horizontal; -moz-box-orient: horizontal; box-orient: horizontal; }
 .filler {box-flex: 1; -moz-box-flex: 1; -webkit-box-flex: 1;  } 
 
+.hide, .ui-tabs-hide, .tab { display:none; }
+body.app-pages #app-pages, body.app-edit #app-edit { display: inherit; }
+body.app-edit #rulers { display:block; }
 a.active, a.active:hover { cursor: default; color:orange; }
+
+
+#tabs {
+	list-style: none;
+	padding:0;
+	margin:0;
+	height:22px;
+	margin-top:10px;
+}
+#tabs li {
+	display: inline-block;
+	border: solid;
+	min-width:50px;
+	border-width: 1px 1px 0 1px;
+	margin: 0 0.5em 0 0;
+	height:100%;
+	/*padding-top:5px;
+	font-size:20px;*/
+}
+#tabs li a {
+	padding: 0 1em;
+}
 
 #scroller {overflow:scroll; background:grey; }
 #scroller .filler {  }
 #content { /*height:300px; width:600px;*/ background-color:white; position:relative; }
 
-#header { height:50px; }
+#header { height:50px; min-width: 300px;  }
+#title h2 { overflow:hidden; border: solid 1px #ddd; height: 30px; line-height:30px; font-size:25px; margin-bottom:0; }
+#header-content { border-bottom:2px solid; height:33px; }
 #sidebar { width:150px; }
 
 .props { width:70px; margin-left:5px; border: solid 1px; }
@@ -21,7 +48,7 @@ a.active, a.active:hover { cursor: default; color:orange; }
 #global-props {}
 #options { width:50px; height:300px; outline: solid 2px red; background-color:green; position:absolute;}
 
-#rulers { position:absolute; top:0; left: 0; z-index:10;}
+#rulers { position:absolute; top:0; left: 0; z-index:10; display:none; }
 #ruler-x, #ruler-y { position:absolute; overflow:hidden; background:#ddd;}
 #ruler-x { top: 34px; left: 150px; }
 #ruler-y { top: 50px; left: 134px; bottom: 16px; }
