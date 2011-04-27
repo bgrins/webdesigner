@@ -1,6 +1,6 @@
 
 body, html, #all { width: 100%; height: 100%; padding: 0; margin: 0; }
-
+body { overflow:hidden; }
 .vbox, .hbox { display: -webkit-box; display: -moz-box; display: box; }
 .vbox { -webkit-box-orient: vertical; -moz-box-orient: vertical; box-orient: vertical; }
 .hbox { -webkit-box-orient: horizontal; -moz-box-orient: horizontal; box-orient: horizontal; }
@@ -13,7 +13,7 @@ a.active, a.active:hover { cursor: default; color:orange; }
 #content { /*height:300px; width:600px;*/ background-color:white; position:relative; }
 
 #header { height:50px; }
-#sidebar { width:100px; }
+#sidebar { width:150px; }
 
 .props { width:70px; margin-left:5px; border: solid 1px; }
 .props .header { border: solid 1px; margin:3px; }
@@ -23,8 +23,8 @@ a.active, a.active:hover { cursor: default; color:orange; }
 
 #rulers { position:absolute; top:0; left: 0; z-index:10;}
 #ruler-x, #ruler-y { position:absolute; overflow:hidden; background:#ddd;}
-#ruler-x { top: 34px; left: 100px; }
-#ruler-y { top: 50px; left: 84px; bottom: 16px; }
+#ruler-x { top: 34px; left: 150px; }
+#ruler-y { top: 50px; left: 134px; bottom: 16px; }
 #ruler-x div { height:16px; }
 #ruler-y div { width:16px; }
 

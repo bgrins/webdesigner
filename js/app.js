@@ -25,13 +25,21 @@ app.bindBody = function(body) {
 		$(this).removeClass("hover");
 	}).delegate(sel, "click", function() {
 		current.removeClass("selected");
-		current = $(this).addClass("selected");
+		if (this == current[0]) {
+			current = $([])
+		}
+		else {
+			current = $(this).addClass("selected");
+		}
 		return false;
 	});
 	/*
 	$(body).mousemove(function(e) {
 		if (current.length) {
-			current.offset({top:e.pageY, left: e.pageX});
+			log(e.layerY, e.layerX, e.pageX, e.pageY);
+			var top = e.pageY;
+			var left = e.pageX;
+			current.offset({top: top, left: left});
 		}
 	});*/
 	$(body).keydown(function(e) {
