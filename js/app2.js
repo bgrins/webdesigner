@@ -85,7 +85,8 @@ window.PageView = Backbone.View.extend({
     "click .check"              : "toggleDone",
     "dblclick div.todo-content" : "edit",
     "click span.todo-destroy"   : "clear",
-    "keypress .todo-input"      : "updateOnEnter"
+    "keypress .todo-input"      : "updateOnEnter",
+    "click .page-edit"      : "editHTML"
   },
 
   // The TodoView listens for changes to its model, re-rendering. Since there's
@@ -120,6 +121,12 @@ window.PageView = Backbone.View.extend({
     this.input.val(content);
   },
 
+  editHTML: function() {
+  	log("clicked edit", this);
+  	this.model.trigger("editHTML", this.model)
+  	
+  },
+  
   // Toggle the `"done"` state of the model.
   toggleDone: function() {
     this.model.toggle();
@@ -179,7 +186,7 @@ window.AppView = Backbone.View.extend({
   },
 
   initialize: function() {
-    _.bindAll(this, 'addOne', 'addAll', 'render');
+    _.bindAll(this, 'addOne', 'addAll', 'render', 'copyPageToFrame');
 
     this.input    = this.$("#new-todo");
     
@@ -187,6 +194,9 @@ window.AppView = Backbone.View.extend({
     // Bind hash change for tabs
     var tabs = $("#tabs a");
     var classes = tabs.map(function() { return $(this).attr("href").split('#')[1]; }).toArray().join(' ');
+    
+    this.TAB_EDIT = tabs.eq(1);
+    this.TAB_PAGES = tabs.eq(0);
     
 	$(window).bind("hashchange", function() {
 		var hash = window.location.hash;
@@ -205,6 +215,7 @@ window.AppView = Backbone.View.extend({
     Pages.bind('add',     this.addOne);
     Pages.bind('refresh', this.addAll);
     Pages.bind('all',     this.render);
+    Pages.bind('editHTML',     this.copyPageToFrame);
 
     Pages.fetch();
   },
@@ -239,7 +250,13 @@ window.AppView = Backbone.View.extend({
       done:    false
     };
   },
-
+  
+  copyPageToFrame: function(page) {
+  	log("Copying page to frame", page, page.get('content'), this);
+  	this.$("#mirror").contents().find("body").html(page.get('content'));
+  	this.TAB_EDIT.click();
+  },
+  
   // If you hit return in the main input field, create new **Todo** model,
   // persisting it to *localStorage*.
   createOnEnter: function(e) {
