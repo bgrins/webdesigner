@@ -15,22 +15,15 @@ app.loadProject = function(src) {
 }
 
 app.bindBody = function(body) {
-	var current = $([]);
 	var sel = "div, p, h1, h2, h3, h4, h5, h6, img";
-	$(body).delegate(sel, "mouseenter", function() {
+	$(body).delegate(sel, "mouseover", function() {
 		if (!current.length) {
 			$(this).addClass("hover");
 		}
-	}).delegate(sel, "mouseleave", function() {
+	}).delegate(sel, "mouseout", function() {
 		$(this).removeClass("hover");
 	}).delegate(sel, "click", function() {
-		current.removeClass("selected");
-		if (this == current[0]) {
-			current = $([])
-		}
-		else {
-			current = $(this).addClass("selected");
-		}
+		app.attachControls(this);
 		return false;
 	});
 	/*
@@ -67,13 +60,34 @@ app.bindBody = function(body) {
 			off.left += modifier;
 			current.offset(off);
 		}
+		//app.resizeFrame();
 	});
 };
 
-app.frameLoaded = function(frame) {
-	if (frame.src == 'javascript:void(0);') { return; }
+
+	var current = $([]);
+
+app.attachControls = function(element) {
+	var el = $(element);
+	if (el.length) {
+		if (el[0] == current[0]) {
+			current = $([]);
+			app.detachControls(el)
+		}
+		else {
+			app.detachControls(current);
+			current = el.addClass("selected");
+		}
+	}
+};
+app.detachControls = function(element) {
+	$(element).removeClass("selected");
 	
-	var mirror = $(frame).contents();
+};
+
+app.resizeFrame = function() {
+
+	var mirror = $(app.frame).contents();
 	var mirrorBody = mirror.find("body").attr("data-debug", "true");
 	mirrorBody.append(app.editorStyles);
 	var h = mirrorBody[0].scrollHeight;
@@ -81,10 +95,15 @@ app.frameLoaded = function(frame) {
 
 	// mirrorBody.html($("#loadTemplate").html());
 	var canvas = $("#c");
-	$(frame).height(h).width(w);
+	$(app.frame).height(h).width(w);
 	$("#content").height(h).width(w);
-	
-	app.bindBody(mirrorBody);
+};
+app.frame = $([]);
+app.frameLoaded = function(frame) {
+	if (frame.src == 'javascript:void(0);') { return; }
+	app.frame = frame;
+	app.resizeFrame();
+	app.bindBody($(app.frame).contents().find("body"));
 	return;
 	var bodyElement = html2canvas(mirrorBody[0], canvas[0]);
 	
