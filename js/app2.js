@@ -204,7 +204,8 @@ window.AppView = Backbone.View.extend({
   // appending its element to the `<ul>`.
   addOne: function(todo) {
     var view = new PageView({model: todo});
-    this.$("#todo-list").append(view.render().el);
+    log("Add on");
+    this.$("#page-list").append(view.render().el);
   },
 
   addAll: function() {

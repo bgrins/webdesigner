@@ -1,6 +1,6 @@
 
 body, html, #all { width: 100%; height: 100%; padding: 0; margin: 0; }
-body { overflow:hidden; }
+body.tab-edit { overflow:hidden; }
 .vbox, .hbox { display: -webkit-box; display: -moz-box; display: box; }
 .vbox { -webkit-box-orient: vertical; -moz-box-orient: vertical; box-orient: vertical; }
 .hbox { -webkit-box-orient: horizontal; -moz-box-orient: horizontal; box-orient: horizontal; }
@@ -9,6 +9,8 @@ body { overflow:hidden; }
 .hide, .ui-tabs-hide, .tab { display:none; }
 body.tab-pages #tab-pages, body.tab-edit #tab-edit { display: inherit; }
 body.tab-edit #rulers { display:block; }
+body.tab-pages #all { display:block;}
+
 a.active, a.active:hover { cursor: default; color:orange; }
 
 
@@ -32,6 +34,52 @@ a.active, a.active:hover { cursor: default; color:orange; }
 #tabs li a {
 	padding: 0 1em;
 }
+
+#tab-pages { padding: 10px; width:90%; margin:0 auto; border:solid 2px;}
+#create-page { margin-left:5px; padding-left:3px; border: solid 1px; margin-bottom:4px;}
+#page-list { margin:0 auto; padding:0; }
+#page-list li { display:inline-block; width: 150px; height:150px; border: 2px solid; margin: 5px; vertical-align:top;}
+
+#todo-content { padding-top:9px;}
+#page-list .editing .display,
+#page-list .edit {
+  display: none;
+}
+#page-list .editing .edit {
+  display: block;
+  padding-left:4px;
+}
+    #page-list .editing input {
+      width: 90%;
+      line-height: 1.6em;
+    }
+  #page-list .check {
+    position: relative;
+    top: 9px;
+    margin: 0 10px 0 7px;
+    float: left;
+  }
+  #page-list .done .todo-content {
+    text-decoration: line-through;
+    color: #777777;
+  }
+  #page-list .todo-destroy {
+    position: absolute;
+    right: 5px;
+    top: 14px;
+    display: none;
+    cursor: pointer;
+    width: 20px;
+    height: 20px;
+    background: url(destroy.png) no-repeat 0 0;
+  }
+    #page-list li:hover .todo-destroy {
+      display: block;
+    }
+    #page-list .todo-destroy:hover {
+      background-position: 0 -20px;
+    }
+
 
 #scroller {overflow:scroll; background:grey; }
 #scroller .filler {  }

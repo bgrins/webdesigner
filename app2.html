@@ -40,7 +40,39 @@
 			</div>
 		</div>
 		<div id='tab-pages' class='tab'>
-			Some content for pagesssss
+							
+			  <div class="title">
+			    <h3>My Pages</h3>
+			  </div>
+			
+			  <div class="content">
+			
+			    <div id="create-page">
+			    	New Page:&nbsp;
+			    	<label>
+			    		<input id="new-todo" placeholder="What to name it?" type="text" />
+			    	</label>&nbsp;
+			    	<label>Based off of master page: 
+			    		<select>
+			    			<option>1</option>
+			    			<option>2</option>
+			    		</select>
+			    	</label>
+			    	<input type='button' value='Create' />
+			      
+			      
+			      <span class="ui-tooltip-top" style="display:none;">Press Enter to save this task</span>
+			    </div>
+			
+			    <div id="todos">
+			      <ul id="page-list"></ul>
+			    </div>
+			
+			    <div id="todo-stats"></div>
+			
+			  </div>
+			
+			    
 		</div>
 		<div id='tab-edit' class='hbox filler tab'>
 			<div id='sidebar'>
@@ -62,30 +94,7 @@
 						<iframe id='mirror' src='javascript:void(0);' onload='app.frameLoaded(this)'></iframe>-->
 						
 						
-						
-<div id="todoapp">
-
-  <div class="title">
-    <h1>Todos</h1>
-  </div>
-
-  <div class="content">
-
-    <div id="create-todo">
-      <input id="new-todo" placeholder="What needs to be done?" type="text" />
-      <span class="ui-tooltip-top" style="display:none;">Press Enter to save this task</span>
-    </div>
-
-    <div id="todos">
-      <ul id="todo-list"></ul>
-    </div>
-
-    <div id="todo-stats"></div>
-
-  </div>
-
-</div>
-    
+				
     
 					</div>
 					<div class='filler'></div>
