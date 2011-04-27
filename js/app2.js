@@ -5,7 +5,8 @@ window.Page = Backbone.Model.extend({
 
   defaults: {
     content: "empty todo...",
-    done: false
+    done: false,
+    master: 0
   },
 
   // Ensure that each todo created has `content`.
@@ -24,6 +25,12 @@ window.Page = Backbone.Model.extend({
   clear: function() {
     this.destroy();
     this.view.remove();
+  },
+  
+  validate: function(attrs) {
+  	if ($.trim(attrs.content).length == 0) {
+  		return "Must have a name.";
+  	}
   }
 
 });
@@ -50,8 +57,8 @@ window.PageList = Backbone.Collection.extend({
     return this.last().get('order') + 1;
   },
 
-  comparator: function(todo) {
-    return todo.get('order');
+  comparator: function(page) {
+    return page.get('order');
   }
 
 });
@@ -83,16 +90,22 @@ window.PageView = Backbone.View.extend({
   // a one-to-one correspondence between a **Todo** and a **TodoView** in this
   // app, we set a direct reference on the model for convenience.
   initialize: function() {
-    _.bindAll(this, 'render', 'close');
+    _.bindAll(this, 'render', 'close', 'error');
     this.model.bind('change', this.render);
+   	this.model.bind('error', this.error);
     this.model.view = this;
   },
 
   // Re-render the contents of the todo item.
   render: function() {
+  	log("Rendering", this, this.el)
     $(this.el).html(this.template(this.model.toJSON()));
     this.setContent();
     return this;
+  },
+  
+  error: function(model, error) {
+  	this.$('.todo-error').text(error);
   },
 
   // To avoid XSS (not that it would be harmful in this particular app),
@@ -153,6 +166,8 @@ window.AppView = Backbone.View.extend({
 
   // Our template for the line of statistics at the bottom of the app.
   statsTemplate: _.template($('#stats-template').html()),
+  
+  tabClasses: [],
 
   // Delegated events for creating new items, and clearing completed ones.
   events: {
@@ -169,7 +184,7 @@ window.AppView = Backbone.View.extend({
     
     // Bind hash change for tabs
     var tabs = $("#tabs a");
-    var classes = tabs.map(function() { return $(this).data("tab"); }).toArray().join(' ');
+    var classes = tabs.map(function() { return $(this).attr("href").split('#')[1]; }).toArray().join(' ');
     
 	$(window).bind("hashchange", function() {
 		var hash = window.location.hash;
@@ -177,9 +192,10 @@ window.AppView = Backbone.View.extend({
 			tabs.filter("[href='" + hash + "']").click();
 		}
 	});
-	
+  	
     tabs.click(function() {
-    	$(document.body).removeClass(classes).addClass($(this).attr("href").split('#')[1])
+    	$(document.body).removeClass(classes).addClass($(this).attr("href").split('#')[1]);
+    	document.body.scrollTop = 0;
     }).eq(0).click();
 
     Pages.bind('add',     this.addOne);
@@ -204,14 +220,14 @@ window.AppView = Backbone.View.extend({
   // appending its element to the `<ul>`.
   addOne: function(todo) {
     var view = new PageView({model: todo});
-    log("Add on");
     this.$("#page-list").append(view.render().el);
   },
 
   addAll: function() {
     Pages.each(this.addOne);
+    log("Adding all");
   },
-
+  
   newAttributes: function() {
     return {
       content: this.input.val(),

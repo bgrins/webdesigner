@@ -22,8 +22,8 @@
 				<div class='span-5'>
 				
 					<ul id='tabs'>
-						<li><a data-tab='tab-pages' href="#tab-pages">Pages</a></li>
-						<li><a data-tab='tab-edit' href="#tab-edit">States</a></li>
+						<li class='tab-pages'><a href="#tab-pages">Pages</a></li>
+						<li class='tab-edit'><a href="#tab-edit">States</a></li>
 					</ul>
 				</div>
 			<!--
@@ -48,8 +48,7 @@
 			  <div class="content">
 			
 			    <div id="create-page">
-			    	New Page:&nbsp;
-			    	<label>
+			    	<label>New Page:&nbsp;
 			    		<input id="new-todo" placeholder="What to name it?" type="text" />
 			    	</label>&nbsp;
 			    	<label>Based off of master page: 
@@ -116,11 +115,13 @@
         <div class="display">
           <input class="check" type="checkbox" <%= done ? 'checked="checked"' : '' %> />
           <div class="todo-content"></div>
+          <span class='todo-error'></span>
           <span class="todo-destroy"></span>
         </div>
         <div class="edit">
           <input class="todo-input" type="text" value="" />
         </div>
+          <input class="todo-input-master" type="text" value="<%= master %>" />
       </div>
     </script>
 

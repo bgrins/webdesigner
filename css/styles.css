@@ -28,17 +28,18 @@ a.active, a.active:hover { cursor: default; color:orange; }
 	border-width: 1px 1px 0 1px;
 	margin: 0 0.5em 0 0;
 	height:100%;
-	/*padding-top:5px;
-	font-size:20px;*/
 }
-#tabs li a {
-	padding: 0 1em;
-}
+#tabs li a { padding: 0 1em; }
+
+body.tab-pages #tabs li.tab-pages,
+body.tab-edit #tabs li.tab-edit { background-color:#333; }
+body.tab-pages #tabs li.tab-pages a,
+body.tab-edit #tabs li.tab-edit a { color: #fff; }
 
 #tab-pages { padding: 10px; width:90%; margin:0 auto; border:solid 2px;}
 #create-page { margin-left:5px; padding-left:3px; border: solid 1px; margin-bottom:4px;}
 #page-list { margin:0 auto; padding:0; }
-#page-list li { display:inline-block; width: 150px; height:150px; border: 2px solid; margin: 5px; vertical-align:top;}
+#page-list li { display:inline-block; width: 150px; height:150px; border: 2px solid; margin: 5px; vertical-align:top; position:relative;}
 
 #todo-content { padding-top:9px;}
 #page-list .editing .display,
@@ -66,18 +67,18 @@ a.active, a.active:hover { cursor: default; color:orange; }
   #page-list .todo-destroy {
     position: absolute;
     right: 5px;
-    top: 14px;
+    top: 5px;
     display: none;
     cursor: pointer;
     width: 20px;
     height: 20px;
-    background: url(destroy.png) no-repeat 0 0;
+    background: #ddd;
   }
     #page-list li:hover .todo-destroy {
       display: block;
     }
     #page-list .todo-destroy:hover {
-      background-position: 0 -20px;
+      background: orangered;
     }
 
 
